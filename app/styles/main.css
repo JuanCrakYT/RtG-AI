@@ -116,6 +116,70 @@ select:focus-visible {
 
     background: #0d0f12;
     border-right: 1px solid var(--border);
+
+    transition:
+        opacity 180ms ease,
+        visibility 180ms ease,
+        transform 180ms ease,
+        flex-basis 180ms ease,
+        width 180ms ease;
+}
+
+.sidebar.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    flex: 0 0 0;
+    width: 0;
+    overflow: hidden;
+    border-right: 0;
+}
+
+.sidebar.is-overlay {
+    position: absolute;
+    z-index: 30;
+
+    top: 0;
+    bottom: 0;
+    left: 0;
+
+    width: var(--sidebar-width);
+
+    transform: translateX(-100%);
+
+    box-shadow: 12px 0 40px rgb(0 0 0 / 45%);
+}
+
+.sidebar.is-overlay.is-hidden {
+    transform: translateX(-100%);
+}
+
+.sidebar.is-overlay:not(.is-hidden) {
+    transform: translateX(0);
+}
+
+.sidebar-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.show-sidebar-button {
+    display: none;
+}
+
+/* Botón × dentro del sidebar: visible cuando el sidebar está abierto */
+.sidebar:not(.is-hidden) .toggle-sidebar-button {
+    display: inline-flex;
+}
+
+/* Botón × oculto cuando el sidebar está oculto */
+.sidebar.is-hidden .toggle-sidebar-button {
+    display: none;
+}
+
+/* Botón ☰ en el topbar: visible cuando el sidebar está oculto */
+.sidebar.is-hidden ~ .main .show-sidebar-button {
+    display: inline-flex;
 }
 
 .sidebar-header {
@@ -465,9 +529,11 @@ select:focus-visible {
     gap: 6px;
 
     padding: 0 20px 12px;
+
+    overflow-x: hidden;
 }
 
-.quick-prompts button {
+.quick-prompt {
     padding: 5px 8px;
 
     background: var(--panel);
@@ -486,7 +552,7 @@ select:focus-visible {
         color 120ms ease;
 }
 
-.quick-prompts button:hover {
+.quick-prompt:hover {
     background: var(--panel-hover);
     border-color: #343945;
     color: var(--text);
@@ -1032,6 +1098,32 @@ select:focus-visible {
 }
 
 
+.sidebar-overlay {
+    position: absolute;
+    z-index: 25;
+
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    background: rgb(0 0 0 / 50%);
+    backdrop-filter: blur(1px);
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition:
+        opacity 180ms ease,
+        visibility 180ms ease;
+}
+
+.sidebar-overlay.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+
 /* =========================================================
    Responsive
    ========================================================= */
@@ -1072,8 +1164,21 @@ select:focus-visible {
         height: auto;
     }
 
-    .sidebar {
-        display: none;
+    .sidebar.is-overlay {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+
+        width: min(82vw, 320px);
+    }
+
+    .sidebar.is-overlay.is-hidden {
+        transform: translateX(-100%);
+    }
+
+    .show-sidebar-button {
+        display: inline-flex;
     }
 
     .main {

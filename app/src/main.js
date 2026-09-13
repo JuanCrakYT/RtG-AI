@@ -7,9 +7,11 @@ import { storage } from "./core/storage.js";
 import { chat } from "./ui/chat.js";
 import { feedbackUI } from "./ui/feedback.js";
 import { input } from "./ui/input.js";
+import { lang } from "./ui/lang.js";
 import { modelSelector } from "./ui/modelSelector.js";
 import { preview } from "./ui/preview.js";
 import { sidebar } from "./ui/sidebar.js";
+import { suggested } from "./ui/suggested.js";
 
 
 /**
@@ -25,6 +27,9 @@ async function initialize() {
     await storage.initialize();
     await modelManager.initialize();
     await chatManager.initialize();
+
+    await lang.initialize();
+    lang.applyToDocument();
 
     modelSelector.initialize({
         modelManager
@@ -47,12 +52,18 @@ async function initialize() {
         preview
     });
 
+    suggested.initialize({
+        input
+    });
+
     feedbackUI.initialize({
         feedback,
         chatManager
     });
 
-    preview.initialize();
+    preview.initialize({
+        lang
+    });
 
     await chatManager.loadCurrentConversation();
 

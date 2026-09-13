@@ -4,13 +4,16 @@ const preview = {
     mount: null,
     objectCount: null,
     placeholder: null,
+    lang: null,
 
     currentBuild: null,
     config: null,
     ready: false,
     loadingPromise: null,
 
-    async initialize() {
+    async initialize({ lang } = {}) {
+        this.lang = lang || null;
+
         this.mount = document.querySelector("#rtg-preview-mount");
         this.objectCount = document.querySelector("#object-count");
         this.placeholder = document.querySelector(".preview-placeholder");
@@ -19,7 +22,35 @@ const preview = {
             throw new Error("RtG preview mount not found.");
         }
 
+        this.applyTranslations();
+
         await this.loadPreviewer();
+    },
+
+    t(key, fallback) {
+        if (this.lang && typeof this.lang.t === "function") {
+            return this.lang.t(key, fallback);
+        }
+
+        return fallback ?? key;
+    },
+
+    applyTranslations() {
+        if (!this.placeholder) return;
+
+        const title = this.placeholder.querySelector("strong");
+        const instruction = this.placeholder.querySelector("span");
+
+        if (title) {
+            title.textContent = this.t("no-build", "Sin build todavía");
+        }
+
+        if (instruction) {
+            instruction.textContent = this.t(
+                "no-build-instruction",
+                "Genera una build para verla aquí."
+            );
+        }
     },
 
     async loadPreviewer() {

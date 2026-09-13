@@ -1,0 +1,76 @@
+[
+    {
+        "es": {
+            "red-part": [
+                "Part Rojo",
+                "Generame un bloque de 'Part' de color rojo y que no esté conectado a nada."
+            ]
+        },
+        "en": {
+            "red-part": [
+                "Red Part",
+                "Generate a red block of 'Part' that is not connected to anything."
+            ]
+        },
+        "pt": {
+            "red-part": [
+                "Part Vermelho",
+                "Gere um bloco de 'Part' de cor vermelha que não esteja conectado a nada."
+            ]
+        },
+        "de": {
+            "red-part": [
+                "Rotes Part",
+                "Erstelle einen roten 'Part'-Block, der mit nichts verbunden ist."
+            ]
+        },
+        "fr": {
+            "red-part": [
+                "Part Rouge",
+                "Génère un bloc 'Part' de couleur rouge qui n'est connecté à rien."
+            ]
+        },
+        "ru": {
+            "red-part": [
+                "Красный Part",
+                "Создай красный блок 'Part', который ни к чему не подключён."
+            ]
+        },
+        "zh": {
+            "red-part": [
+                "红色 Part",
+                "生成一个红色的 'Part' 方块，并且不要将它连接到任何东西。"
+            ]
+        },
+        "ja": {
+            "red-part": [
+                "赤い Part",
+                "何にも接続されていない赤色の 'Part' ブロックを生成してください。"
+            ]
+        },
+        "ko": {
+            "red-part": [
+                "빨간색 Part",
+                "아무것에도 연결되지 않은 빨간색 'Part' 블록을 생성하세요."
+            ]
+        },
+        "it": {
+            "red-part": [
+                "Part Rosso",
+                "Genera un blocco 'Part' di colore rosso che non sia collegato a nulla."
+            ]
+        },
+        "tr": {
+            "red-part": [
+                "Kırmızı Part",
+                "Hiçbir şeye bağlı olmayan kırmızı bir 'Part' bloğu oluştur."
+            ]
+        },
+        "pl": {
+            "red-part": [
+                "Czerwony Part",
+                "Wygeneruj czerwony blok 'Part', który nie jest z niczym połączony."
+            ]
+        }
+    }
+]

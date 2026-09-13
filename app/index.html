@@ -17,22 +17,34 @@
     <div id="app">
 
         <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar">
+        <aside id="sidebar" class="sidebar" aria-hidden="false">
             <div class="sidebar-header">
                 <div class="brand">
                     <span class="brand-mark">RtG</span>
                     <span class="brand-name">RtG-AI</span>
                 </div>
 
-                <button
-                    id="new-chat-button"
-                    class="icon-button"
-                    type="button"
-                    aria-label="Nueva conversación"
-                    title="Nueva conversación"
-                >
-                    +
-                </button>
+                <div class="sidebar-header-actions">
+                    <button
+                        id="toggle-sidebar-button"
+                        class="icon-button"
+                        type="button"
+                        aria-label="Ocultar conversaciones"
+                        title="Ocultar conversaciones"
+                    >
+                        ×
+                    </button>
+
+                    <button
+                        id="new-chat-button"
+                        class="icon-button"
+                        type="button"
+                        aria-label="Nueva conversación"
+                        title="Nueva conversación"
+                    >
+                        +
+                    </button>
+                </div>
             </div>
 
             <div class="sidebar-section">
@@ -42,12 +54,12 @@
                     type="button"
                 >
                     <span>+</span>
-                    <span>Nueva conversación</span>
+                    <span data-i18n="new-chat">Nueva conversación</span>
                 </button>
             </div>
 
             <div class="conversations">
-                <div class="section-label">Conversaciones</div>
+                <div class="section-label" data-i18n="chats">CONVERSACIONES</div>
 
                 <div id="conversation-list" class="conversation-list">
                     <!-- Conversations are inserted by chatManager/sidebar -->
@@ -69,6 +81,17 @@
             <!-- Header -->
             <header class="topbar">
                 <div class="topbar-title">
+                    <button
+                        id="show-sidebar-button"
+                        class="icon-button show-sidebar-button"
+                        type="button"
+                        data-i18n-aria="show-conversations"
+                        aria-label="Mostrar conversaciones"
+                        title="Mostrar conversaciones"
+                    >
+                        ☰
+                    </button>
+
                     <span class="title-mark">RtG //</span>
                     <span>Build Console</span>
                 </div>
@@ -78,6 +101,7 @@
                         id="view-json-button"
                         class="toolbar-button"
                         type="button"
+                        data-i18n="see-json"
                     >
                         Ver JSON
                     </button>
@@ -86,6 +110,7 @@
                         id="reset-button"
                         class="toolbar-button"
                         type="button"
+                        data-i18n="restart"
                     >
                         Reiniciar
                     </button>
@@ -101,8 +126,8 @@
 
                     <div class="chat-header">
                         <div>
-                            <h1>Construye con RtG-AI</h1>
-                            <p>
+                            <h1 data-i18n="build-rtg-ai">Construye con RtG-AI</h1>
+                            <p data-i18n="build-rtg-ai-desc">
                                 Describe lo que quieres construir y la IA
                                 generará el build de Road to Gramby's.
                             </p>
@@ -116,21 +141,7 @@
                         class="quick-prompts"
                         aria-label="Prompts rápidos"
                     >
-                        <button type="button" data-prompt="Part rojo">
-                            Part rojo
-                        </button>
-
-                        <button type="button" data-prompt="Base gris">
-                            Base gris
-                        </button>
-
-                        <button type="button" data-prompt="Wheel conectado a Base">
-                            Wheel → Base
-                        </button>
-
-                        <button type="button" data-prompt="Servo con Speed 100">
-                            Servo (Speed 100)
-                        </button>
+                        <!-- Suggested prompts are inserted by suggested.js -->
                     </div>
 
 
@@ -148,22 +159,20 @@
                     <div class="input-area">
 
                         <div class="model-row">
-                            <label for="model-selector">
-                                Modelo
-                            </label>
+                            <label for="model-selector" data-i18n="model">Modelo</label>
 
                             <select id="model-selector">
                                 <!-- Models are inserted by modelSelector.js -->
                             </select>
                         </div>
 
-                        <div class="input-container">
+<div class="input-container">
 
                             <textarea
                                 id="chat-input"
                                 rows="1"
                                 placeholder="Describe tu build..."
-                                aria-label="Mensaje"
+                                aria-label="mensaje"
                             ></textarea>
 
                             <button
@@ -179,8 +188,8 @@
                         </div>
 
                         <div class="input-hint">
-                            <span>Enter para enviar</span>
-                            <span>Shift + Enter para nueva línea</span>
+                            <span data-i18n="send">Enter para enviar</span>
+                            <span data-i18n="new-line">Shift + Enter para nueva línea</span>
                         </div>
 
                     </div>
@@ -202,6 +211,7 @@
                                 id="clear-preview-button"
                                 class="toolbar-button"
                                 type="button"
+                                data-i18n="clean"
                             >
                                 Limpiar
                             </button>
@@ -222,8 +232,8 @@
                                 </div>
 
                                 <div>
-                                    <strong>Sin build todavía</strong>
-                                    <span>
+                                    <strong data-i18n="no-build">Sin build todavía</strong>
+                                    <span data-i18n="no-build-instruction">
                                         Genera una build para verla aquí.
                                     </span>
                                 </div>
@@ -251,11 +261,12 @@
                     <span id="json-object-count">0 objetos</span>
                 </div>
 
-                <button
+<button
                     id="close-json-button"
                     class="icon-button"
                     type="button"
-                    aria-label="Cerrar JSON"
+                    data-i18n-aria="close-json"
+                    aria-label="Close JSON"
                 >
                     ×
                 </button>
@@ -267,6 +278,7 @@
                     id="copy-json-button"
                     type="button"
                     class="toolbar-button"
+                    data-i18n="copy-json"
                 >
                     Copiar
                 </button>
@@ -275,6 +287,7 @@
                     id="download-json-button"
                     type="button"
                     class="toolbar-button"
+                    data-i18n="download-json"
                 >
                     Descargar
                 </button>
@@ -287,6 +300,10 @@
         </aside>
 
     </div>
+
+
+    <!-- Sidebar overlay (mobile) -->
+    <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
 
 
     <!-- Application -->

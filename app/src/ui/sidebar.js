@@ -2,12 +2,24 @@ const sidebar = {
     chatManager: null,
     listElement: null,
     newChatButton: null,
+    toggleButton: null,
+    showButton: null,
+    overlayElement: null,
+    sidebarElement: null,
+
+    isHidden: false,
+
+    MOBILE_BREAKPOINT: 720,
 
     initialize({ chatManager }) {
         this.chatManager = chatManager;
 
         this.listElement = document.querySelector("#conversation-list");
         this.newChatButton = document.querySelector("#new-chat-button");
+        this.toggleButton = document.querySelector("#toggle-sidebar-button");
+        this.showButton = document.querySelector("#show-sidebar-button");
+        this.overlayElement = document.querySelector("#sidebar-overlay");
+        this.sidebarElement = document.querySelector("#sidebar");
 
         if (!this.listElement) {
             throw new Error("Conversation list not found.");
@@ -17,8 +29,29 @@ const sidebar = {
             throw new Error("New chat button not found.");
         }
 
+        if (!this.toggleButton) {
+            throw new Error("Toggle sidebar button not found.");
+        }
+
+        if (!this.showButton) {
+            throw new Error("Show sidebar button not found.");
+        }
+
+        if (!this.overlayElement) {
+            throw new Error("Sidebar overlay not found.");
+        }
+
+        if (!this.sidebarElement) {
+            throw new Error("Sidebar element not found.");
+        }
+
         this.bindEvents();
+        this.applyResponsiveState();
         this.render();
+
+        window.addEventListener("resize", () => {
+            this.applyResponsiveState();
+        });
     },
 
     bindEvents() {
@@ -26,9 +59,123 @@ const sidebar = {
             this.createConversation();
         });
 
+        this.toggleButton.addEventListener("click", () => {
+            this.toggle();
+        });
+
+        this.showButton.addEventListener("click", () => {
+            this.show();
+        });
+
+        this.overlayElement.addEventListener("click", () => {
+            this.hide();
+        });
+
         document.addEventListener("rtg-ai:conversation-updated", () => {
             this.render();
         });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+
+            if (this.isMobile() && !this.isHidden) {
+                this.hide();
+            }
+        });
+    },
+
+    isMobile() {
+        return window.innerWidth <= this.MOBILE_BREAKPOINT;
+    },
+
+    applyResponsiveState() {
+        if (this.isMobile()) {
+            this.sidebarElement.classList.add("is-overlay");
+
+            if (this.isHidden) {
+                this.sidebarElement.classList.add("is-hidden");
+            } else {
+                this.sidebarElement.classList.remove("is-hidden");
+            }
+
+            this.overlayElement.classList.remove("is-visible");
+            this.overlayElement.setAttribute("aria-hidden", "true");
+
+            this.updateAria();
+            this.updateToggleLabel();
+            return;
+        }
+
+        this.sidebarElement.classList.remove("is-overlay");
+
+        if (this.isHidden) {
+            this.sidebarElement.classList.add("is-hidden");
+        } else {
+            this.sidebarElement.classList.remove("is-hidden");
+        }
+
+        this.overlayElement.classList.remove("is-visible");
+        this.overlayElement.setAttribute("aria-hidden", "true");
+
+        this.updateAria();
+        this.updateToggleLabel();
+    },
+
+    updateAria() {
+        if (!this.sidebarElement) return;
+
+        this.sidebarElement.setAttribute(
+            "aria-hidden",
+            String(this.isHidden)
+        );
+    },
+
+    toggle() {
+        if (this.isHidden) {
+            this.show();
+        } else {
+            this.hide();
+        }
+    },
+
+    show() {
+        this.isHidden = false;
+        this.sidebarElement.classList.remove("is-hidden");
+
+        if (this.isMobile()) {
+            this.overlayElement.classList.add("is-visible");
+            this.overlayElement.setAttribute("aria-hidden", "false");
+        }
+
+        this.updateAria();
+        this.updateToggleLabel();
+    },
+
+    hide() {
+        this.isHidden = true;
+        this.sidebarElement.classList.add("is-hidden");
+
+        this.overlayElement.classList.remove("is-visible");
+        this.overlayElement.setAttribute("aria-hidden", "true");
+
+        this.updateAria();
+        this.updateToggleLabel();
+    },
+
+    updateToggleLabel() {
+        if (!this.toggleButton) return;
+
+        const isHidden = this.isHidden;
+
+        this.toggleButton.textContent = isHidden ? "☰" : "×";
+        this.toggleButton.setAttribute(
+            "aria-label",
+            isHidden ? "Mostrar conversaciones" : "Ocultar conversaciones"
+        );
+        this.toggleButton.setAttribute(
+            "title",
+            isHidden ? "Mostrar conversaciones" : "Ocultar conversaciones"
+        );
     },
 
     render() {
@@ -97,6 +244,10 @@ const sidebar = {
         this.dispatchConversationChanged(conversation);
 
         this.focusInput();
+
+        if (this.isMobile() && !this.isHidden) {
+            this.hide();
+        }
     },
 
     dispatchConversationChanged(conversation) {

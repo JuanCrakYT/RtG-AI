@@ -134,6 +134,19 @@ const input = {
             !hasText || this.sendButton.dataset.loading === "true";
     },
 
+    setInputValue(text) {
+        if (!this.inputElement) return;
+
+        this.inputElement.value = text ?? "";
+        this.updateSendButton();
+
+        this.inputElement.focus();
+        this.inputElement.scrollIntoView?.({
+            behavior: "smooth",
+            block: "nearest"
+        });
+    },
+
     setLoading(loading) {
         if (!this.sendButton) return;
 
