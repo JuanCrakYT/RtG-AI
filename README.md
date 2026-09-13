@@ -1,2 +1,3 @@
 # RtG-AI
-JSON creator
+
+Road to Gramby's Build Creator
