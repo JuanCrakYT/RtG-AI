@@ -1107,6 +1107,9 @@ select:focus-visible {
     left: 0;
     right: 0;
 
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+
     background: rgb(0 0 0 / 50%);
     backdrop-filter: blur(1px);
 

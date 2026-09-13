@@ -13,7 +13,14 @@
         "see-json": "Ver JSON",
         "restart": "Reiniciar",
         "new-chat": "Nueva conversación",
-        "chats": "CONVERSACIONES"
+        "chats": "CONVERSACIONES",
+        "show-conversations": "Mostrar conversaciones",
+        "hide-conversations": "Ocultar conversaciones",
+        "placeholder": "Describe tu build...",
+        "send-button": "Generar respuesta",
+        "close-json": "Guardar JSON",
+        "copy-json": "Copiar",
+        "download-json": "Descargar"
     },
     "en": {
         "build-rtg-ai": "Build with RtG-AI",
@@ -29,7 +36,14 @@
         "see-json": "View JSON",
         "restart": "Restart",
         "new-chat": "New conversation",
-        "chats": "CONVERSATIONS"
+        "chats": "CONVERSATIONS",
+        "show-conversations": "Show conversations",
+        "hide-conversations": "Hide conversations",
+        "placeholder": "Describe your build...",
+        "send-button": "Generate response",
+        "close-json": "Close JSON",
+        "copy-json": "Copy",
+        "download-json": "Download"
     },
     "pt": {
         "build-rtg-ai": "Construa com o RtG-AI",
@@ -45,7 +59,14 @@
         "see-json": "Ver JSON",
         "restart": "Reiniciar",
         "new-chat": "Nova conversa",
-        "chats": "CONVERSAS"
+        "chats": "CONVERSAS",
+        "show-conversations": "Mostrar conversas",
+        "hide-conversations": "Ocultar conversas",
+        "placeholder": "Descreva sua build...",
+        "send-button": "Gerar resposta",
+        "close-json": "Fechar JSON",
+        "copy-json": "Copiar",
+        "download-json": "Baixar"
     },
     "de": {
         "build-rtg-ai": "Mit RtG-AI bauen",
@@ -61,7 +82,14 @@
         "see-json": "JSON anzeigen",
         "restart": "Neustarten",
         "new-chat": "Neue Unterhaltung",
-        "chats": "UNTERHALTUNGEN"
+        "chats": "UNTERHALTUNGEN",
+        "show-conversations": "Unterhaltungen anzeigen",
+        "hide-conversations": "Unterhaltungen ausblenden",
+        "placeholder": "Beschreibe deine Build...",
+        "send-button": "Antwort generieren",
+        "close-json": "JSON schließen",
+        "copy-json": "Kopieren",
+        "download-json": "Herunterladen"
     },
     "fr": {
         "build-rtg-ai": "Construire avec RtG-AI",
@@ -77,7 +105,14 @@
         "see-json": "Voir le JSON",
         "restart": "Redémarrer",
         "new-chat": "Nouvelle conversation",
-        "chats": "CONVERSATIONS"
+        "chats": "CONVERSATIONS",
+        "show-conversations": "Afficher les conversations",
+        "hide-conversations": "Masquer les conversations",
+        "placeholder": "Décrivez votre build...",
+        "send-button": "Générer la réponse",
+        "close-json": "Fermer le JSON",
+        "copy-json": "Copier",
+        "download-json": "Télécharger"
     },
     "ru": {
         "build-rtg-ai": "Создать с помощью RtG-AI",
@@ -93,7 +128,14 @@
         "see-json": "Посмотреть JSON",
         "restart": "Перезапустить",
         "new-chat": "Новый разговор",
-        "chats": "РАЗГОВОРЫ"
+        "chats": "РАЗГОВОРЫ",
+        "show-conversations": "Показать разговоры",
+        "hide-conversations": "Скрыть разговоры",
+        "placeholder": "Опишите ваш build...",
+        "send-button": "Сгенерировать ответ",
+        "close-json": "Закрыть JSON",
+        "copy-json": "Копировать",
+        "download-json": "Скачать"
     },
     "zh": {
         "build-rtg-ai": "使用 RtG-AI 构建",
@@ -109,7 +151,14 @@
         "see-json": "查看 JSON",
         "restart": "重新开始",
         "new-chat": "新对话",
-        "chats": "对话"
+        "chats": "对话",
+        "show-conversations": "显示对话",
+        "hide-conversations": "隐藏对话",
+        "placeholder": "描述您的构建...",
+        "send-button": "生成回复",
+        "close-json": "关闭 JSON",
+        "copy-json": "复制",
+        "download-json": "下载"
     },
     "ja": {
         "build-rtg-ai": "RtG-AIで構築",
@@ -125,7 +174,14 @@
         "see-json": "JSONを表示",
         "restart": "再起動",
         "new-chat": "新しい会話",
-        "chats": "会話"
+        "chats": "会話",
+        "show-conversations": "会話を表示",
+        "hide-conversations": "会話を隠す",
+        "placeholder": "ビルドを説明してください...",
+        "send-button": "応答を生成",
+        "close-json": "JSONを閉じる",
+        "copy-json": "コピー",
+        "download-json": "ダウンロード"
     },
     "ko": {
         "build-rtg-ai": "RtG-AI로 빌드하기",
@@ -141,7 +197,14 @@
         "see-json": "JSON 보기",
         "restart": "다시 시작",
         "new-chat": "새 대화",
-        "chats": "대화"
+        "chats": "대화",
+        "show-conversations": "대화 보기",
+        "hide-conversations": "대화 숨기기",
+        "placeholder": "빌드를 설명하세요...",
+        "send-button": "응답 생성",
+        "close-json": "JSON 닫기",
+        "copy-json": "복사",
+        "download-json": "다운로드"
     },
     "it": {
         "build-rtg-ai": "Costruisci con RtG-AI",
@@ -157,11 +220,18 @@
         "see-json": "Visualizza JSON",
         "restart": "Riavvia",
         "new-chat": "Nuova conversazione",
-        "chats": "CONVERSAZIONI"
+        "chats": "CONVERSAZIONI",
+        "show-conversations": "Mostra conversazioni",
+        "hide-conversations": "Nascondi conversazioni",
+        "placeholder": "Descrivi la tua build...",
+        "send-button": "Genera risposta",
+        "close-json": "Chiudi JSON",
+        "copy-json": "Copia",
+        "download-json": "Scarica"
     },
     "tr": {
         "build-rtg-ai": "RtG-AI ile oluştur",
-        "build-rtg-ai-desc": "Ne oluşturmak istediğinizi açıklayın, yapay zekâ Road to Gramby's yapısını oluşturacaktır.",
+        "build-rtg-ai-desc": "Ne oluşturmak istedinizi açıklayın, yapay zekâ Road to Gramby's yapısını oluşturacaktır.",
         "model": "Model",
         "send": "Göndermek için Enter",
         "new-line": "Yeni satır için Shift + Enter",
@@ -170,10 +240,17 @@
         "loading": "Yükleniyor...",
         "no-build": "Henüz bir yapı yok",
         "no-build-instruction": "Burada görmek için bir yapı oluşturun.",
-        "see-json": "JSON'u görüntüle",
+        "see-json": "JSON'u Görüntüle",
         "restart": "Yeniden başlat",
-        "new-chat": "Yeni konuşma",
-        "chats": "KONUŞMALAR"
+        "new-chat": "Yeni konuş",
+        "chats": "KONUŞMALAR",
+        "show-conversations": "Konuşmaları göster",
+        "hide-conversations": "Konuşmaları gizle",
+        "placeholder": "Build'inizi açıklayın...",
+        "send-button": "Cevap oluştur",
+        "close-json": "JSON'ı kapat",
+        "copy-json": "Kopyala",
+        "download-json": "İndir"
     },
     "pl": {
         "build-rtg-ai": "Buduj za pomocą RtG-AI",
@@ -185,10 +262,17 @@
         "clean": "Wyczyść",
         "loading": "Ładowanie...",
         "no-build": "Brak builda",
-        "no-build-instruction": "Wygeneruj build, aby zobaczyć go tutaj.",
+        "no-build-instruction": "Wygeneruj build, abynąć go tutaj.",
         "see-json": "Zobacz JSON",
         "restart": "Uruchom ponownie",
         "new-chat": "Nowa rozmowa",
-        "chats": "ROZMOWY"
+        "chats": "ROZMOWY",
+        "show-conversations": "Pokaż rozmowy",
+        "hide-conversations": "Ukryj rozmowy",
+        "placeholder": "Opisz swoją build...",
+        "send-button": "Wygeneruj odpowiedź",
+        "close-json": "Zamknij JSON",
+        "copy-json": "Kopiuj",
+        "download-json": "Pobierz"
     }
 }
