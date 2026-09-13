@@ -1,0 +1,7 @@
+{
+  "name": "rtg-ai",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Generative AI for Road to Gramby's builds"
+}

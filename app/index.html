@@ -1,6 +1,295 @@
-<script src="https://cdn.jsdelivr.net/gh/JuanCrakYT/RtG-Format@388dbc792a10d6c348df4f639388e56642e65a0c/RtG-Preview/preview.js"></script>
-<script>
-  RtGPreview.render([
-    ["Fricklet", [], {}]
-  ]);
-</script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RtG-AI</title>
+    <meta
+        name="description"
+        content="RtG-AI — Generative AI for Road to Gramby's builds."
+    >
+
+    <link rel="stylesheet" href="./styles/main.css">
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <span class="brand-mark">RtG</span>
+                    <span class="brand-name">RtG-AI</span>
+                </div>
+
+                <button
+                    id="new-chat-button"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Nueva conversación"
+                    title="Nueva conversación"
+                >
+                    +
+                </button>
+            </div>
+
+            <div class="sidebar-section">
+                <button
+                    id="new-chat"
+                    class="new-chat-button"
+                    type="button"
+                >
+                    <span>+</span>
+                    <span>Nueva conversación</span>
+                </button>
+            </div>
+
+            <div class="conversations">
+                <div class="section-label">Conversaciones</div>
+
+                <div id="conversation-list" class="conversation-list">
+                    <!-- Conversations are inserted by chatManager/sidebar -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="status">
+                    <span class="status-dot"></span>
+                    <span>RtG-AI</span>
+                </div>
+            </div>
+        </aside>
+
+
+        <!-- Main application -->
+        <main class="main">
+
+            <!-- Header -->
+            <header class="topbar">
+                <div class="topbar-title">
+                    <span class="title-mark">RtG //</span>
+                    <span>Build Console</span>
+                </div>
+
+                <div class="topbar-actions">
+                    <button
+                        id="view-json-button"
+                        class="toolbar-button"
+                        type="button"
+                    >
+                        Ver JSON
+                    </button>
+
+                    <button
+                        id="reset-button"
+                        class="toolbar-button"
+                        type="button"
+                    >
+                        Reiniciar
+                    </button>
+                </div>
+            </header>
+
+
+            <!-- Workspace -->
+            <div class="workspace">
+
+                <!-- Chat -->
+                <section class="chat-panel">
+
+                    <div class="chat-header">
+                        <div>
+                            <h1>Construye con RtG-AI</h1>
+                            <p>
+                                Describe lo que quieres construir y la IA
+                                generará el build de Road to Gramby's.
+                            </p>
+                        </div>
+                    </div>
+
+
+                    <!-- Quick prompts -->
+                    <div
+                        id="quick-prompts"
+                        class="quick-prompts"
+                        aria-label="Prompts rápidos"
+                    >
+                        <button type="button" data-prompt="Part rojo">
+                            Part rojo
+                        </button>
+
+                        <button type="button" data-prompt="Base gris">
+                            Base gris
+                        </button>
+
+                        <button type="button" data-prompt="Wheel conectado a Base">
+                            Wheel → Base
+                        </button>
+
+                        <button type="button" data-prompt="Servo con Speed 100">
+                            Servo (Speed 100)
+                        </button>
+                    </div>
+
+
+                    <!-- Messages -->
+                    <div
+                        id="chat-messages"
+                        class="chat-messages"
+                        aria-live="polite"
+                    >
+                        <!-- Messages are inserted by chat.js -->
+                    </div>
+
+
+                    <!-- Input -->
+                    <div class="input-area">
+
+                        <div class="model-row">
+                            <label for="model-selector">
+                                Modelo
+                            </label>
+
+                            <select id="model-selector">
+                                <!-- Models are inserted by modelSelector.js -->
+                            </select>
+                        </div>
+
+                        <div class="input-container">
+
+                            <textarea
+                                id="chat-input"
+                                rows="1"
+                                placeholder="Describe tu build..."
+                                aria-label="Mensaje"
+                            ></textarea>
+
+                            <button
+                                id="send-button"
+                                class="send-button"
+                                type="button"
+                                disabled
+                                aria-label="Generar respuesta"
+                            >
+                                →
+                            </button>
+
+                        </div>
+
+                        <div class="input-hint">
+                            <span>Enter para enviar</span>
+                            <span>Shift + Enter para nueva línea</span>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- Preview -->
+                <section class="preview-panel">
+
+                    <div class="preview-header">
+                        <div>
+                            <span class="panel-label">PREVIEW</span>
+                            <span id="object-count">0 objetos</span>
+                        </div>
+
+                        <div class="preview-actions">
+                            <button
+                                id="clear-preview-button"
+                                class="toolbar-button"
+                                type="button"
+                            >
+                                Limpiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        id="rtg-preview"
+                        class="preview-container"
+                    >
+                        <div
+                            id="rtg-preview-mount"
+                            class="preview-mount"
+                        >
+                            <div class="preview-placeholder">
+                                <div class="placeholder-icon">
+                                    +
+                                </div>
+
+                                <div>
+                                    <strong>Sin build todavía</strong>
+                                    <span>
+                                        Genera una build para verla aquí.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+            </div>
+
+        </main>
+
+
+        <!-- JSON drawer -->
+        <aside
+            id="json-drawer"
+            class="json-drawer"
+            aria-hidden="true"
+        >
+            <div class="json-header">
+
+                <div>
+                    <span class="panel-label">BUILD JSON</span>
+                    <span id="json-object-count">0 objetos</span>
+                </div>
+
+                <button
+                    id="close-json-button"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Cerrar JSON"
+                >
+                    ×
+                </button>
+
+            </div>
+
+            <div class="json-toolbar">
+                <button
+                    id="copy-json-button"
+                    type="button"
+                    class="toolbar-button"
+                >
+                    Copiar
+                </button>
+
+                <button
+                    id="download-json-button"
+                    type="button"
+                    class="toolbar-button"
+                >
+                    Descargar
+                </button>
+            </div>
+
+            <pre
+                id="json-output"
+                class="json-output"
+            ><code>[]</code></pre>
+        </aside>
+
+    </div>
+
+
+    <!-- Application -->
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
