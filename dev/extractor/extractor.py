@@ -21,19 +21,36 @@ UNKNOWN_PROPERTIES_FILE = DEV_DIR / "unknown-properties.json"
 # Configuration
 # ------------------------------------------------------------
 
+# These types can be identified automatically from the JSON value.
+# A decimal JSON number is always a Number.
 AUTO_TYPES = (
+    "Boolean",
+    "Array",
+    "Object",
+    "String",
+    "Number",
+)
+
+# An integer JSON number can be either Number or Integer.
+# That semantic distinction requires human classification.
+HUMAN_TYPES = (
+    "Number",
+    "Integer",
+)
+
+ALL_PROPERTY_TYPES = HUMAN_TYPES + (
     "Boolean",
     "Array",
     "Object",
     "String",
 )
 
-HUMAN_TYPES = (
-    "Number",
-    "Integer",
+# Types observed directly while scanning training data.
+OBSERVED_TYPES = AUTO_TYPES + (
+    "NumericInteger",
+    "Null",
 )
 
-ALL_PROPERTY_TYPES = HUMAN_TYPES + AUTO_TYPES
 
 # ------------------------------------------------------------
 # JSON helpers
@@ -43,8 +60,8 @@ def load_json(path: Path) -> Any:
     with path.open("r", encoding="utf-8") as file:
         data = json.load(file)
 
-    # Los archivos de entrenamiento pueden contener el build
-    # directamente o dentro de un wrapper con "content".
+    # Training files may contain the build directly or inside
+    # a wrapper whose "content" field contains serialized JSON.
     if isinstance(data, dict) and "content" in data:
         content = data["content"]
 
@@ -166,9 +183,12 @@ def detect_property_type(value: Any) -> str:
     if isinstance(value, str):
         return "String"
 
+    # JSON integers cannot be distinguished semantically between
+    # Number and Integer. Human classification is required.
     if isinstance(value, int):
         return "NumericInteger"
 
+    # A JSON value with a decimal representation is a Number.
     if isinstance(value, float):
         return "Number"
 
@@ -178,6 +198,7 @@ def detect_property_type(value: Any) -> str:
     raise ValueError(
         f"Unsupported JSON value type: {type(value).__name__}"
     )
+
 
 # ------------------------------------------------------------
 # Build extraction
@@ -433,21 +454,28 @@ def register_unknown_property(
     """
     Put an unresolved property into unknown-properties.json.
 
-    Auto properties are classified immediately and therefore can later
-    be promoted into tokens.json.
+    Auto properties are classified immediately and can later be
+    promoted into tokens.json.
 
     Human numeric properties remain unresolved until the user places
     them in Human.Number or Human.Integer.
     """
 
     if property_type in AUTO_TYPES:
-        unknown["Properties"]["Auto"][property_type].append(
-            property_name
+        add_unique(
+            unknown["Properties"]["Auto"][property_type],
+            property_name,
         )
         return
 
+    if property_type == "NumericInteger":
+        raise ValueError(
+            f"Cannot automatically classify integer property "
+            f"'{property_name}' as Number or Integer."
+        )
+
     raise ValueError(
-        f"Cannot automatically classify human property "
+        f"Cannot automatically classify property "
         f"'{property_name}' as {property_type}."
     )
 
@@ -543,11 +571,11 @@ def synchronize_properties(
     """
     Synchronize discovered properties with unknown-properties.json.
 
-    New automatic properties are first registered in Auto.
+    Decimal numbers are automatically classified as Number.
 
-    Human numeric properties are never guessed. If the user has already
-    classified them in Human.Number or Human.Integer, that classification
-    is respected.
+    Integer numbers cannot be distinguished semantically between
+    Number and Integer, so they remain unresolved until the user
+    classifies them under Human.Number or Human.Integer.
     """
 
     discovered = []
@@ -578,6 +606,11 @@ def synchronize_properties(
         )
 
         if human_type is not None:
+            if observed_type == "NumericInteger":
+                # Integer JSON values may legitimately represent either
+                # semantic Number or Integer properties.
+                continue
+
             if human_type != observed_type:
                 raise ValueError(
                     f"Property '{property_name}' is classified as "
@@ -589,22 +622,25 @@ def synchronize_properties(
 
         if observed_type in AUTO_TYPES:
             auto_values = unknown["Properties"]["Auto"][observed_type]
-        
+
             if property_name not in auto_values:
                 auto_values.append(property_name)
                 discovered.append(property_name)
-        
-        elif observed_type == "Number":
-            auto_values = unknown["Properties"]["Auto"]["Number"]
-        
-            if property_name not in auto_values:
-                auto_values.append(property_name)
-                discovered.append(property_name)
-        
+
         elif observed_type == "NumericInteger":
-            unresolved_numeric.append(property_name)     
-        
-            return discovered, unresolved_numeric
+            unresolved_numeric.append(property_name)
+
+        elif observed_type == "Null":
+            # null is a literal, not a property classification.
+            continue
+
+        else:
+            raise ValueError(
+                f"Unsupported observed property type "
+                f"'{observed_type}' for '{property_name}'."
+            )
+
+    return discovered, unresolved_numeric
 
 
 # ------------------------------------------------------------
@@ -751,13 +787,13 @@ def main() -> None:
         unknown,
     )
 
-    # Auto classifications are now promoted into tokens.json.
+    # Auto classifications are promoted into tokens.json.
     promoted_auto = promote_auto_properties(
         tokens,
         unknown,
     )
 
-    # Human classifications are also promoted once the user has
+    # Human classifications are promoted once the user has
     # explicitly classified them.
     promoted_human = promote_human_properties(
         tokens,

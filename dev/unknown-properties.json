@@ -1,7 +1,8 @@
 {
     "Properties": {
         "Human": {
-            "Integer": []
+            "Integer": [],
+            "Number": []
         },
         "Auto": {
             "Boolean": [],
