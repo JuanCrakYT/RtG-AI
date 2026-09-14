@@ -1,13 +1,14 @@
 {
     "Properties": {
         "Human": {
-            "Number": [],
             "Integer": []
         },
         "Auto": {
             "Boolean": [],
             "Array": [],
-            "Object": []
+            "Object": [],
+            "String": [],
+            "Number": []
         }
     }
 }
