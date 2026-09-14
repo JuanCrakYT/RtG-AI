@@ -1,15 +1,15 @@
 {
-    "Properties": {
-        "Human": {
-            "Integer": [],
-            "Number": []
-        },
-        "Auto": {
-            "Boolean": [],
-            "Array": [],
-            "Object": [],
-            "String": [],
-            "Number": []
-        }
+  "Properties": {
+    "Human": {
+      "Integer": [],
+      "Number": []
+    },
+    "Auto": {
+      "Boolean": [],
+      "Array": [],
+      "Object": [],
+      "String": [],
+      "Number": []
     }
+  }
 }
