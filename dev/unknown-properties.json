@@ -12,6 +12,11 @@
       "Object": [],
       "String": [],
       "Number": []
+    },
+    "Unresolved": {
+      "NumericInteger": [
+        "Speed"
+      ]
     }
   }
 }
