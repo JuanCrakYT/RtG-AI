@@ -120,6 +120,7 @@ def ensure_unknown_structure(data: dict[str, Any]) -> dict[str, Any]:
 
     human = properties.setdefault("Human", {})
     auto = properties.setdefault("Auto", {})
+    unresolved = properties.setdefault("Unresolved", {})
 
     human.setdefault("Number", [])
     human.setdefault("Integer", [])
@@ -130,8 +131,9 @@ def ensure_unknown_structure(data: dict[str, Any]) -> dict[str, Any]:
     auto.setdefault("String", [])
     auto.setdefault("Number", [])
 
-    return data
+    unresolved.setdefault("NumericInteger", [])
 
+    return data
 
 def load_unknown_properties() -> dict[str, Any]:
     """Load or create the unresolved property database."""
@@ -147,7 +149,6 @@ def load_unknown_properties() -> dict[str, Any]:
 
     return ensure_unknown_structure({})
 
-
 def register_unknown_property(
     unknown: dict[str, Any],
     property_name: str,
@@ -156,8 +157,8 @@ def register_unknown_property(
     """
     Register an unknown property according to its observed type.
 
-    NumericInteger is intentionally not registered directly because an
-    integer JSON value may semantically represent either Number or Integer.
+    NumericInteger is stored as unresolved because it still needs
+    human classification as Number or Integer.
     """
     properties = unknown["Properties"]
 
@@ -176,6 +177,10 @@ def register_unknown_property(
         return
 
     if property_type == "NumericInteger":
+        add_unique(
+            properties["Unresolved"]["NumericInteger"],
+            property_name,
+        )
         return
 
     if property_type == "Null":

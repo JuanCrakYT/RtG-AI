@@ -2,7 +2,9 @@
   "Properties": {
     "Human": {
       "Integer": [],
-      "Number": []
+      "Number": [
+        "Speed"
+      ]
     },
     "Auto": {
       "Boolean": [],
