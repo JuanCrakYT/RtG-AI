@@ -3,14 +3,21 @@
     "Human": {
       "Integer": [],
       "Number": [
-        "Speed"
+        "Speed",
+        "ItemTurn"
       ]
     },
     "Auto": {
-      "Boolean": [],
+      "Boolean": [
+        "Reverse",
+        "DisabledInput",
+        "Deactivated"
+      ],
       "Array": [],
       "Object": [],
-      "String": [],
+      "String": [
+        "ActivationKey"
+      ],
       "Number": []
     },
     "Unresolved": {

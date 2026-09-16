@@ -92,6 +92,7 @@ La aplicación está diseñada para ser sencilla y servir como interfaz para el 
 
 ```text
 app/
+├── icons/
 ├── src/
 │   ├── core/
 │   │   ├── ai.js
@@ -104,10 +105,13 @@ app/
 │   │   ├── chat.js
 │   │   ├── feedback.js
 │   │   ├── input.js
+│   │   ├── lang.js
 │   │   ├── message.js
 │   │   ├── modelSelector.js
 │   │   ├── preview.js
+│   │   ├── preview.json
 │   │   ├── sidebar.js
+│   │   ├── suggested.js
 │   │   └── suggested.json
 │   │
 │   └── main.js
