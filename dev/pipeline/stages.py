@@ -29,3 +29,8 @@ class ExtractorStage(Stage):
 # class DatasetGeneratorStage(Stage): ...   # dev/dataset/generator.py
 # class TokenizerStage(Stage): ...          # dev/tokens/build_tokenizer.py
 # class TrainingStage(Stage): ...           # model/train.py
+
+def build_pipeline():
+    """Lista de etapas activas, en orden de ejecución.
+    Editar acá al agregar DatasetGeneratorStage, TokenizerStage, TrainingStage."""
+    return [ExtractorStage()]
