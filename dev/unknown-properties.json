@@ -4,28 +4,14 @@
       "Integer": []
     },
     "Auto": {
-      "Boolean": [
-        "Deactivated",
-        "DisabledInput",
-        "Reverse"
-      ],
+      "Boolean": [],
       "Array": [],
       "Object": [],
-      "String": [
-        "ActivationKey"
-      ],
-      "Number": [
-        "ItemTurn",
-        "Speed"
-      ]
+      "String": [],
+      "Number": []
     }
   },
   "Objects": {
-    "Auto": [
-      "GasCap",
-      "PressurePlate",
-      "Splitter",
-      "Wheel"
-    ]
+    "Auto": []
   }
 }

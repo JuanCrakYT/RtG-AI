@@ -61,10 +61,10 @@ def classify_value(value):
         return "Auto", "Object"
     if isinstance(value, float):
         if not value.is_integer():
-            return "Auto", "Number"    # decimal real -> no puede ser Integer, seguro
-        return "Human", "Number"       # ej. 10.0 -> ambiguo igual que un int, a revisión
+            return "Auto", "Number"     # decimal real -> no puede ser Integer, seguro
+        return "Human", "Integer"       # ej. 10.0 -> ambiguo, candidato a Integer
     if isinstance(value, int):
-        return "Human", "Number"       # entero -> ambiguo (¿Number o Integer?), nunca se asume
+        return "Human", "Integer"       # entero -> ambiguo, nunca se asume, va a revisión
     return "Human", "Unclassified"
 
 
@@ -95,7 +95,82 @@ def ensure_structure(unknown_data):
     unknown_data["Objects"].setdefault("Auto", [])
 
 
-def main():
+def promote_auto(tokens_data, unknown_data):
+    """Mueve todo lo que está en Auto (propiedades y objetos) a tokens.json,
+    y lo borra de unknown-properties.json. Human nunca se toca aquí."""
+    names = tokens_data[0]["Names"]
+    promoted_props, promoted_objects = 0, 0
+
+    for category, prop_list in unknown_data["Properties"]["Auto"].items():
+        if not prop_list:
+            continue
+        names["Properties"].setdefault(category, [])
+        for prop_name in prop_list:
+            if prop_name not in names["Properties"][category]:
+                names["Properties"][category].append(prop_name)
+                promoted_props += 1
+        unknown_data["Properties"]["Auto"][category] = []
+
+    for obj_name in unknown_data["Objects"]["Auto"]:
+        if obj_name not in names["Objects"]:
+            names["Objects"].append(obj_name)
+            promoted_objects += 1
+    unknown_data["Objects"]["Auto"] = []
+
+    for category in names["Properties"]:
+        names["Properties"][category] = sorted(set(names["Properties"][category]))
+    names["Objects"] = sorted(set(names["Objects"]))
+
+    return promoted_props, promoted_objects
+
+def _wrap_string_list(items, indent, max_width=100):
+    """Empaqueta strings en líneas de hasta max_width caracteres, en vez de una por línea."""
+    lines, current, current_len = [], [], indent
+    for idx, item in enumerate(items):
+        piece = json.dumps(item, ensure_ascii=False)
+        piece += "," if idx < len(items) - 1 else ""
+        piece_len = len(piece) + 1  # +1 por el espacio separador
+        if current and current_len + piece_len > max_width:
+            lines.append(" " * indent + " ".join(current))
+            current, current_len = [], indent
+        current.append(piece)
+        current_len += piece_len
+    if current:
+        lines.append(" " * indent + " ".join(current))
+    return lines
+
+
+def _format_value(value, indent):
+    pad = " " * indent
+    closing_pad = " " * (indent - 2)
+
+    if isinstance(value, dict):
+        if not value:
+            return "{}"
+        entries = []
+        keys = list(value.keys())
+        for i, key in enumerate(keys):
+            comma = "," if i < len(keys) - 1 else ""
+            entries.append(f'{pad}{json.dumps(key, ensure_ascii=False)}: {_format_value(value[key], indent + 2)}{comma}')
+        return "{\n" + "\n".join(entries) + "\n" + closing_pad + "}"
+
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        if all(isinstance(v, str) for v in value):
+            body = "\n".join(_wrap_string_list(value, indent))
+            return "[\n" + body + "\n" + closing_pad + "]"
+        # Respaldo para listas que no son puros strings (no ocurre hoy en tokens.json)
+        entries = [f'{pad}{_format_value(v, indent + 2)}' for v in value]
+        return "[\n" + ",\n".join(entries) + "\n" + closing_pad + "]"
+
+    return json.dumps(value, ensure_ascii=False)
+
+
+def dump_pretty(data):
+    return _format_value(data, indent=2)
+
+def run(report=None, should_stop=None):
     tokens_data = load_json(TOKENS_PATH, [{"Names": {"Objects": [], "Properties": {}}}])
     unknown_data = load_json(UNKNOWN_PATH, {})
     ensure_structure(unknown_data)
@@ -105,7 +180,15 @@ def main():
 
     new_objects, new_properties = 0, 0
 
-    for path in JSON_DIR.rglob("*.json"):
+    json_files = list(JSON_DIR.rglob("*.json"))
+    total = len(json_files) or 1
+
+    for i, path in enumerate(json_files):
+        if should_stop and should_stop():
+            if report:
+                report((i / total) * 100, "Cancelado por el usuario")
+            return
+
         data = load_json(path, None)
         if data is None:
             continue
@@ -125,16 +208,31 @@ def main():
                 unknown_data["Properties"][section][category].append(prop_name)
                 new_properties += 1
 
+        if report:
+            report((i + 1) / total * 100, f"Escaneado {path.name} ({i + 1}/{total})")
+
     for section in ("Auto", "Human"):
         for cat in unknown_data["Properties"][section]:
             unknown_data["Properties"][section][cat] = sorted(set(unknown_data["Properties"][section][cat]))
     unknown_data["Objects"]["Auto"] = sorted(set(unknown_data["Objects"]["Auto"]))
 
+    promoted_props, promoted_objects = promote_auto(tokens_data, unknown_data)
+
+    with open(TOKENS_PATH, "w", encoding="utf-8") as f:
+        f.write(dump_pretty(tokens_data))
+
     with open(UNKNOWN_PATH, "w", encoding="utf-8") as f:
         json.dump(unknown_data, f, indent=2, ensure_ascii=False)
 
-    print(f"Objetos nuevos: {new_objects} | Propiedades nuevas: {new_properties}")
+    msg = (f"Objetos nuevos: {new_objects} | Propiedades nuevas: {new_properties} | "
+           f"Promovidos a tokens.json → objetos: {promoted_objects}, propiedades: {promoted_props}")
+    print(msg)
+    if report:
+        report(100, msg)
 
+
+def main():
+    run()
 
 if __name__ == "__main__":
     main()
