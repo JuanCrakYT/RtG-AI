@@ -1,29 +1,31 @@
 {
   "Properties": {
     "Human": {
-      "Integer": [],
-      "Number": [
-        "Speed",
-        "ItemTurn"
-      ]
+      "Integer": []
     },
     "Auto": {
       "Boolean": [
-        "Reverse",
+        "Deactivated",
         "DisabledInput",
-        "Deactivated"
+        "Reverse"
       ],
       "Array": [],
       "Object": [],
       "String": [
         "ActivationKey"
       ],
-      "Number": []
-    },
-    "Unresolved": {
-      "NumericInteger": [
+      "Number": [
+        "ItemTurn",
         "Speed"
       ]
     }
+  },
+  "Objects": {
+    "Auto": [
+      "GasCap",
+      "PressurePlate",
+      "Splitter",
+      "Wheel"
+    ]
   }
 }
