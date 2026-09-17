@@ -14,6 +14,7 @@ from pipeline.stages import build_pipeline
 WIDTH, HEIGHT = 720, 420
 BG, FG, MUTED = (18, 18, 22), (230, 230, 230), (140, 140, 150)
 OK, FAIL, RUNNING, BAR_BG = (110, 200, 110), (210, 90, 90), (90, 160, 220), (40, 40, 48)
+BOX_BG, BOX_BORDER = (30, 32, 40), (90, 160, 220)
 
 STATUS_COLOR = {
     None: MUTED,
@@ -30,6 +31,23 @@ class StageView:
         self.message, self.error = "", None
 
 
+def wrap_text(text, font, max_width):
+    """Parte el texto en líneas que no superen max_width píxeles."""
+    words = text.split(" ")
+    lines, current = [], ""
+    for word in words:
+        trial = f"{current} {word}".strip()
+        if font.size(trial)[0] <= max_width:
+            current = trial
+        else:
+            if current:
+                lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines
+
+
 def main():
     pygame.init()
     pygame.display.set_caption("RtG-AI // Pipeline")
@@ -44,6 +62,7 @@ def main():
 
     orchestrator = Orchestrator(stages)
     started, quitting = False, False
+    pending = []  # cola de MessageRequest pendientes de responder
 
     while True:
         for event in pygame.event.get():
@@ -54,7 +73,12 @@ def main():
                 else:
                     pygame.quit(); sys.exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and not started:
+                if pending and pygame.K_1 <= event.key <= pygame.K_9:
+                    idx = event.key - pygame.K_1
+                    if idx < len(pending[0].options):
+                        orchestrator.respond(pending[0].id, pending[0].options[idx])
+                        pending.pop(0)
+                elif event.key == pygame.K_SPACE and not started:
                     orchestrator.start()
                     started = True
                 elif event.key == pygame.K_ESCAPE:
@@ -73,6 +97,8 @@ def main():
             )
             if ev.status == StageStatus.FAILED and ev.error:
                 print(f"[{ev.stage_name}] ERROR:\n{ev.error}")  # traceback completo en consola
+
+        pending.extend(orchestrator.poll_messages())
 
         if quitting and not orchestrator.is_running():
             pygame.quit(); sys.exit()
@@ -100,6 +126,25 @@ def main():
 
         if quitting:
             screen.blit(font_small.render("Deteniendo... esperando cierre limpio", True, MUTED), (20, HEIGHT - 30))
+
+        if pending:
+            msg = pending[0]
+            box_x, box_y, box_w = 40, HEIGHT - 200, WIDTH - 80
+            lines = wrap_text(msg.text, font_small, box_w - 30)
+            option_lines = [f"{i + 1}) {opt}" for i, opt in enumerate(msg.options)]
+            box_h = 30 + len(lines) * 20 + len(option_lines) * 20 + 15
+
+            pygame.draw.rect(screen, BOX_BG, (box_x, box_y, box_w, box_h))
+            pygame.draw.rect(screen, BOX_BORDER, (box_x, box_y, box_w, box_h), width=2)
+
+            ty = box_y + 12
+            for line in lines:
+                screen.blit(font_small.render(line, True, FG), (box_x + 15, ty))
+                ty += 20
+            ty += 8
+            for line in option_lines:
+                screen.blit(font_small.render(line, True, RUNNING), (box_x + 15, ty))
+                ty += 20
 
         pygame.display.flip()
         clock.tick(30)

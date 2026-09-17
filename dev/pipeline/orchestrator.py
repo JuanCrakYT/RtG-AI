@@ -14,7 +14,14 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 from typing import Callable, List, Optional
+import uuid
 
+@dataclass
+class MessageRequest:
+    id: str
+    stage_name: str
+    text: str
+    options: List[str]
 
 class StageStatus(Enum):
     RUNNING = auto()
@@ -58,6 +65,9 @@ class Orchestrator:
         self._thread: Optional[threading.Thread] = None
         self._stop_requested = threading.Event()
         self._running = threading.Event()
+        self.messages: "queue.Queue[MessageRequest]" = queue.Queue()
+        self._pending_answers = {}
+        self._pending_lock = threading.Lock()
 
     def start(self, context: Optional[dict] = None):
         if self._running.is_set():
@@ -84,6 +94,39 @@ class Orchestrator:
                 break
         return events
 
+    def ask(self, stage_name: str, text: str, options: List[str]):
+        """Llamado desde una Stage (hilo de fondo). Bloquea esa etapa hasta
+        que la UI responda, o devuelve None si se pide detener el pipeline
+        mientras espera."""
+        request_id = str(uuid.uuid4())
+        answer_queue: "queue.Queue[str]" = queue.Queue(maxsize=1)
+        with self._pending_lock:
+            self._pending_answers[request_id] = answer_queue
+        self.messages.put(MessageRequest(request_id, stage_name, text, options))
+        while True:
+            try:
+                return answer_queue.get(timeout=0.2)
+            except queue.Empty:
+                if self._stop_requested.is_set():
+                    with self._pending_lock:
+                        self._pending_answers.pop(request_id, None)
+                    return None
+
+    def respond(self, request_id: str, answer: str):
+        with self._pending_lock:
+            answer_queue = self._pending_answers.pop(request_id, None)
+        if answer_queue is not None:
+            answer_queue.put(answer)
+
+    def poll_messages(self) -> List[MessageRequest]:
+        out = []
+        while True:
+            try:
+                out.append(self.messages.get_nowait())
+            except queue.Empty:
+                break
+        return out
+
     def _run_all(self, context: dict):
         for stage in self.stages:
             if self._stop_requested.is_set():
@@ -104,8 +147,11 @@ class Orchestrator:
             def report(percent: float, message: str, _stage=stage):
                 self.events.put(ProgressEvent(_stage.name, StageStatus.RUNNING, percent, message))
 
+            def ask_for_stage(text, options, _stage=stage):
+                return self.ask(_stage.name, text, options)
+
             try:
-                stage.run(context, report, self._stop_requested.is_set)
+                stage.run(context, report, self._stop_requested.is_set, ask_for_stage)
                 self.events.put(ProgressEvent(stage.name, StageStatus.DONE, 100.0, "Completado"))
             except Exception as exc:
                 self.events.put(ProgressEvent(

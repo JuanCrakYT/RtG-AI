@@ -21,8 +21,8 @@ class ExtractorStage(Stage):
     def required_files(self):
         return [str(TOKENS_PATH)]
 
-    def run(self, context, report, should_stop):
-        run_extractor(report=report, should_stop=should_stop)
+    def run(self, context, report, should_stop, ask):
+        run_extractor(report=report, should_stop=should_stop, ask=ask)
 
 
 # Etapas futuras (no implementadas todavía, sin depender de código que aún no existe):

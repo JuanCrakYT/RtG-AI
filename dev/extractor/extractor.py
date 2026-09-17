@@ -170,13 +170,14 @@ def _format_value(value, indent):
 def dump_pretty(data):
     return _format_value(data, indent=2)
 
-def run(report=None, should_stop=None):
+def run(report=None, should_stop=None, ask=None):
     tokens_data = load_json(TOKENS_PATH, [{"Names": {"Objects": [], "Properties": {}}}])
     unknown_data = load_json(UNKNOWN_PATH, {})
     ensure_structure(unknown_data)
 
     known_objects, known_properties = get_known_sets(tokens_data)
     known_unknown_objects = set(unknown_data["Objects"]["Auto"])
+    observed_properties = set()
 
     new_objects, new_properties = 0, 0
 
@@ -199,6 +200,7 @@ def run(report=None, should_stop=None):
                 new_objects += 1
 
             for prop_name, value in properties.items():
+                observed_properties.add(prop_name)
                 if prop_name in known_properties:
                     continue
                 if already_tracked(prop_name, unknown_data):
@@ -218,6 +220,28 @@ def run(report=None, should_stop=None):
 
     promoted_props, promoted_objects = promote_auto(tokens_data, unknown_data)
 
+    if ask:
+        for category in list(unknown_data["Properties"]["Human"].keys()):
+            for prop_name in list(unknown_data["Properties"]["Human"][category]):
+                if should_stop and should_stop():
+                    break
+                choice = ask(
+                    f"'{prop_name}' es ambiguo (detectado como {category}). ¿A qué tipo pertenece?",
+                    ["Integer", "Number", "Boolean", "String", "Array", "Object", "Postponer"]
+                )
+                if choice and choice != "Postponer":
+                    names = tokens_data[0]["Names"]
+                    names["Properties"].setdefault(choice, [])
+                    if prop_name not in names["Properties"][choice]:
+                        names["Properties"][choice].append(prop_name)
+                    unknown_data["Properties"]["Human"][category].remove(prop_name)
+
+        _, known_properties_now = get_known_sets(tokens_data)
+        unused = sorted(known_properties_now - observed_properties)
+        if unused:
+            ask(f"Estas propiedades están en tokens.json pero no aparecen en ningún ejemplo real de dev/json: "
+                f"{', '.join(unused)}", ["OK"])
+
     with open(TOKENS_PATH, "w", encoding="utf-8") as f:
         f.write(dump_pretty(tokens_data))
 
@@ -225,7 +249,7 @@ def run(report=None, should_stop=None):
         json.dump(unknown_data, f, indent=2, ensure_ascii=False)
 
     msg = (f"Objetos nuevos: {new_objects} | Propiedades nuevas: {new_properties} | "
-           f"Promovidos a tokens.json → objetos: {promoted_objects}, propiedades: {promoted_props}")
+           f"Promovidos: objetos {promoted_objects}, propiedades {promoted_props}")
     print(msg)
     if report:
         report(100, msg)
