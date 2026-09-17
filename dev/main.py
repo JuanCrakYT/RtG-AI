@@ -48,6 +48,15 @@ def wrap_text(text, font, max_width):
     return lines
 
 
+def build_fresh_state():
+    """Crea un pipeline y un Orchestrator nuevos, como si el script recién arrancara."""
+    stages = build_pipeline()
+    views = {s.name: StageView(s.name) for s in stages}
+    order = [s.name for s in stages]
+    orchestrator = Orchestrator(stages)
+    return stages, views, order, orchestrator
+
+
 def main():
     pygame.init()
     pygame.display.set_caption("RtG-AI // Pipeline")
@@ -56,22 +65,18 @@ def main():
     font = pygame.font.SysFont("consolas", 16)
     font_small = pygame.font.SysFont("consolas", 13)
 
-    stages = build_pipeline()
-    views = {s.name: StageView(s.name) for s in stages}
-    order = [s.name for s in stages]
-
-    orchestrator = Orchestrator(stages)
-    started, quitting = False, False
-    pending = []  # cola de MessageRequest pendientes de responder
+    stages, views, order, orchestrator = build_fresh_state()
+    started = False
+    pending = []
+    closing = False       # True = se va a cerrar la ventana de verdad (X o ESC)
+    restart_pending = False  # True = se pidió R mientras corría; reiniciar en cuanto pare
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 if orchestrator.is_running():
                     orchestrator.request_stop()
-                    quitting = True
-                else:
-                    pygame.quit(); sys.exit()
+                closing = True
             elif event.type == pygame.KEYDOWN:
                 if pending and pygame.K_1 <= event.key <= pygame.K_9:
                     idx = event.key - pygame.K_1
@@ -84,9 +89,15 @@ def main():
                 elif event.key == pygame.K_ESCAPE:
                     if orchestrator.is_running():
                         orchestrator.request_stop()
-                        quitting = True
+                    closing = True
+                elif event.key == pygame.K_r:
+                    if orchestrator.is_running():
+                        orchestrator.request_stop()
+                        restart_pending = True
                     else:
-                        pygame.quit(); sys.exit()
+                        stages, views, order, orchestrator = build_fresh_state()
+                        started = False
+                        pending = []
 
         for ev in orchestrator.poll_events():
             view = views.setdefault(ev.stage_name, StageView(ev.stage_name))
@@ -96,15 +107,22 @@ def main():
                 ev.status, ev.percent, ev.message, ev.error
             )
             if ev.status == StageStatus.FAILED and ev.error:
-                print(f"[{ev.stage_name}] ERROR:\n{ev.error}")  # traceback completo en consola
+                print(f"[{ev.stage_name}] ERROR:\n{ev.error}")
 
         pending.extend(orchestrator.poll_messages())
 
-        if quitting and not orchestrator.is_running():
-            pygame.quit(); sys.exit()
+        if not orchestrator.is_running():
+            if closing:
+                pygame.quit()
+                sys.exit()
+            if restart_pending:
+                stages, views, order, orchestrator = build_fresh_state()
+                started = False
+                pending = []
+                restart_pending = False
 
         screen.fill(BG)
-        title = "RtG-AI Pipeline" if started else "RtG-AI Pipeline — ESPACIO para iniciar, ESC para salir"
+        title = "RtG-AI Pipeline" if started else "RtG-AI Pipeline — ESPACIO iniciar, R reiniciar, ESC salir"
         screen.blit(font.render(title, True, FG), (20, 16))
 
         y = 60
@@ -124,8 +142,9 @@ def main():
                 screen.blit(font_small.render(first_line, True, FAIL if v.error else MUTED), (20, y + 22))
             y += 60
 
-        if quitting:
-            screen.blit(font_small.render("Deteniendo... esperando cierre limpio", True, MUTED), (20, HEIGHT - 30))
+        if closing or restart_pending:
+            note = "Deteniendo... esperando cierre limpio"
+            screen.blit(font_small.render(note, True, MUTED), (20, HEIGHT - 30))
 
         if pending:
             msg = pending[0]

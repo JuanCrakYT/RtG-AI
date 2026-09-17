@@ -170,6 +170,19 @@ def _format_value(value, indent):
 def dump_pretty(data):
     return _format_value(data, indent=2)
 
+def _note_property(prop_name, value, known_properties, unknown_data, observed_properties):
+    """Registra una propiedad vista (sea de nivel superior o anidada en
+    EphemeralAttachments) y la clasifica si es nueva. Devuelve 1 si era nueva."""
+    observed_properties.add(prop_name)
+    if prop_name in known_properties:
+        return 0
+    if already_tracked(prop_name, unknown_data):
+        return 0
+    section, category = classify_value(value)
+    unknown_data["Properties"][section].setdefault(category, [])
+    unknown_data["Properties"][section][category].append(prop_name)
+    return 1
+
 def run(report=None, should_stop=None, ask=None):
     tokens_data = load_json(TOKENS_PATH, [{"Names": {"Objects": [], "Properties": {}}}])
     unknown_data = load_json(UNKNOWN_PATH, {})
@@ -200,15 +213,16 @@ def run(report=None, should_stop=None, ask=None):
                 new_objects += 1
 
             for prop_name, value in properties.items():
-                observed_properties.add(prop_name)
-                if prop_name in known_properties:
-                    continue
-                if already_tracked(prop_name, unknown_data):
-                    continue
-                section, category = classify_value(value)
-                unknown_data["Properties"][section].setdefault(category, [])
-                unknown_data["Properties"][section][category].append(prop_name)
-                new_properties += 1
+                new_properties += _note_property(prop_name, value, known_properties, unknown_data, observed_properties)
+
+                if prop_name == "EphemeralAttachments" and isinstance(value, dict):
+                    for _uuid, attachment in value.items():
+                        if not isinstance(attachment, dict):
+                            continue
+                        for inner_name, inner_value in attachment.items():
+                            new_properties += _note_property(
+                                inner_name, inner_value, known_properties, unknown_data, observed_properties
+                            )
 
         if report:
             report((i + 1) / total * 100, f"Escaneado {path.name} ({i + 1}/{total})")
