@@ -35,7 +35,7 @@
         "about": "Acerca de",
         "version": "Versión"
     },
-"en": {
+    "en": {
         "build-rtg-ai": "Build with RtG-AI",
         "build-rtg-ai-desc": "Describe what you want to build and the AI will generate the Road to Gramby's build.",
         "model": "Model",
@@ -71,7 +71,7 @@
         "about": "About",
         "version": "Version"
     },
-"pt": {
+    "pt": {
         "build-rtg-ai": "Construa com o RtG-AI",
         "build-rtg-ai-desc": "Descreva o que você quer construir e a IA irá gerar a build de Road to Gramby's.",
         "model": "Modelo",
@@ -107,7 +107,7 @@
         "about": "Sobre",
         "version": "Versão"
     },
-"de": {
+    "de": {
         "build-rtg-ai": "Mit RtG-AI bauen",
         "build-rtg-ai-desc": "Beschreibe, was du bauen möchtest, und die KI wird die Road to Gramby's-Build erstellen.",
         "model": "Modell",
@@ -143,7 +143,7 @@
         "about": "Info",
         "version": "Version"
     },
-"fr": {
+    "fr": {
         "build-rtg-ai": "Construire avec RtG-AI",
         "build-rtg-ai-desc": "Décrivez ce que vous voulez construire et l'IA générera la build de Road to Gramby's.",
         "model": "Modèle",
@@ -179,7 +179,7 @@
         "about": "À propos",
         "version": "Version"
     },
-"ru": {
+    "ru": {
         "build-rtg-ai": "Создать с помощью RtG-AI",
         "build-rtg-ai-desc": "Опишите, что вы хотите построить, и ИИ создаст сборку Road to Gramby's.",
         "model": "Модель",
@@ -215,7 +215,7 @@
         "about": "О программе",
         "version": "Версия"
     },
-"zh": {
+    "zh": {
         "build-rtg-ai": "使用 RtG-AI 构建",
         "build-rtg-ai-desc": "描述你想要构建的内容，AI 将生成 Road to Gramby's 的构建。",
         "model": "模型",
@@ -251,7 +251,7 @@
         "about": "关于",
         "version": "版本"
     },
-"ja": {
+    "ja": {
         "build-rtg-ai": "RtG-AIで構築",
         "build-rtg-ai-desc": "作りたいものを説明すると、AIがRoad to Gramby'sのビルドを生成します。",
         "model": "モデル",
@@ -287,7 +287,7 @@
         "about": "このアプリについて",
         "version": "バージョン"
     },
-"ko": {
+    "ko": {
         "build-rtg-ai": "RtG-AI로 빌드하기",
         "build-rtg-ai-desc": "만들고 싶은 것을 설명하면 AI가 Road to Gramby's 빌드를 생성합니다.",
         "model": "모델",
@@ -323,7 +323,7 @@
         "about": "정보",
         "version": "버전"
     },
-"it": {
+    "it": {
         "build-rtg-ai": "Costruisci con RtG-AI",
         "build-rtg-ai-desc": "Descrivi ciò che vuoi costruire e l'IA genererà la build di Road to Gramby's.",
         "model": "Modello",
@@ -359,7 +359,7 @@
         "about": "Informazioni",
         "version": "Versione"
     },
-"tr": {
+    "tr": {
         "build-rtg-ai": "RtG-AI ile oluştur",
         "build-rtg-ai-desc": "Ne oluşturmak istedinizi açıklayın, yapay zekâ Road to Gramby's yapısını oluşturacaktır.",
         "model": "Model",
@@ -395,7 +395,7 @@
         "about": "Hakkında",
         "version": "Sürüm"
     },
-"pl": {
+    "pl": {
         "build-rtg-ai": "Buduj za pomocą RtG-AI",
         "build-rtg-ai-desc": "Opisz, co chcesz zbudować, a AI wygeneruje build Road to Gramby's.",
         "model": "Model",

@@ -28,7 +28,7 @@ const sidebar = {
 
         this.listElement = document.querySelector("#conversation-list");
         this.newChatButton = document.querySelector("#new-chat");
-        this.newChatTrigger = document.querySelector("#new-chat-trigger");
+        this.newChatTrigger = document.querySelector(".new-chat-trigger");
         this.toggleButton = document.querySelector("#toggle-sidebar-button");
         this.showButton = document.querySelector("#show-sidebar-button");
         this.overlayElement = document.querySelector("#sidebar-overlay");

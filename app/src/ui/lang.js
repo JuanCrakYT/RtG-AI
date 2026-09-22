@@ -12,7 +12,7 @@
  *   lang.getAvailableLanguages() -> ["es", "en", ...]
  */
 
-const LANG_JSON_PATH = "../lang.json";
+const LANG_JSON_PATH = "../../lang.json";
 
 const lang = {
     data: null,

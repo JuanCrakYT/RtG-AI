@@ -316,6 +316,12 @@ body.sidebar-resizing * {
     font-size: 14px;
 }
 
+.sidebar-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .icon-button {
     width: 36px;
     height: 36px;
