@@ -2,18 +2,21 @@ const sidebar = {
     chatManager: null,
     listElement: null,
     newChatButton: null,
+    newChatTrigger: null,
     toggleButton: null,
     showButton: null,
     overlayElement: null,
     sidebarElement: null,
     resizerElement: null,
+    settingsButton: null,
+    themeButton: null,
 
     isHidden: false,
 
-    MOBILE_BREAKPOINT: 720,
+    MOBILE_BREAKPOINT: 768,
 
-    MIN_WIDTH: 180,
-    MAX_WIDTH: 420,
+    MIN_WIDTH: 200,
+    MAX_WIDTH: 360,
 
     currentWidth: null,
     resizeState: null,
@@ -24,12 +27,15 @@ const sidebar = {
         this.chatManager = chatManager;
 
         this.listElement = document.querySelector("#conversation-list");
-        this.newChatButton = document.querySelector("#new-chat-button");
+        this.newChatButton = document.querySelector("#new-chat");
+        this.newChatTrigger = document.querySelector("#new-chat-trigger");
         this.toggleButton = document.querySelector("#toggle-sidebar-button");
         this.showButton = document.querySelector("#show-sidebar-button");
         this.overlayElement = document.querySelector("#sidebar-overlay");
         this.sidebarElement = document.querySelector("#sidebar");
         this.resizerElement = document.querySelector("#sidebar-resizer");
+        this.settingsButton = document.querySelector("#settings-button");
+        this.themeButton = document.querySelector("#toggle-theme-button");
 
         if (!this.listElement) {
             throw new Error("Conversation list not found.");
@@ -37,6 +43,10 @@ const sidebar = {
 
         if (!this.newChatButton) {
             throw new Error("New chat button not found.");
+        }
+
+        if (!this.newChatTrigger) {
+            throw new Error("New chat trigger not found.");
         }
 
         if (!this.toggleButton) {
@@ -59,11 +69,20 @@ const sidebar = {
             throw new Error("Sidebar resizer not found.");
         }
 
+        if (!this.settingsButton) {
+            throw new Error("Settings button not found.");
+        }
+
+        if (!this.themeButton) {
+            throw new Error("Theme button not found.");
+        }
+
         this.restoreWidth();
         this.bindEvents();
         this.bindResizerEvents();
         this.applyResponsiveState();
         this.render();
+        this.applyTheme();
 
         window.addEventListener("resize", () => {
             this.applyResponsiveState();
@@ -72,6 +91,10 @@ const sidebar = {
 
     bindEvents() {
         this.newChatButton.addEventListener("click", () => {
+            this.createConversation();
+        });
+
+        this.newChatTrigger.addEventListener("click", () => {
             this.createConversation();
         });
 
@@ -85,6 +108,14 @@ const sidebar = {
 
         this.overlayElement.addEventListener("click", () => {
             this.hide();
+        });
+
+        this.settingsButton.addEventListener("click", () => {
+            this.openSettings();
+        });
+
+        this.themeButton.addEventListener("click", () => {
+            this.toggleTheme();
         });
 
         document.addEventListener("rtg-ai:conversation-updated", () => {
@@ -150,7 +181,10 @@ const sidebar = {
 
         const isHidden = this.isHidden;
 
-        this.toggleButton.textContent = isHidden ? "☰" : "×";
+        this.toggleButton.innerHTML = isHidden
+            ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>'
+            : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+
         this.toggleButton.setAttribute(
             "aria-label",
             isHidden ? "Mostrar conversaciones" : "Ocultar conversaciones"
@@ -253,7 +287,52 @@ const sidebar = {
     },
 
     /* =========================================================
-       Sidebar resize
+       Theme handling
+       ========================================================= */
+
+    applyTheme() {
+        const savedTheme = localStorage.getItem("rtg-ai:theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = savedTheme || (prefersDark ? "dark" : "light");
+
+        document.documentElement.setAttribute("data-theme", theme);
+        this.updateThemeIcon(theme);
+    },
+
+    toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("rtg-ai:theme", newTheme);
+        this.updateThemeIcon(newTheme);
+    },
+
+    updateThemeIcon(theme) {
+        if (!this.themeButton) return;
+
+        const sunIcon = this.themeButton.querySelector(".icon-sun");
+        const moonIcon = this.themeButton.querySelector(".icon-moon");
+
+        if (theme === "dark") {
+            sunIcon.style.display = "block";
+            moonIcon.style.display = "none";
+            this.themeButton.setAttribute("aria-label", "Cambiar a tema claro");
+        } else {
+            sunIcon.style.display = "none";
+            moonIcon.style.display = "block";
+            this.themeButton.setAttribute("aria-label", "Cambiar a tema oscuro");
+        }
+    },
+
+    openSettings() {
+        document.dispatchEvent(
+            new CustomEvent("rtg-ai:settings-requested")
+        );
+    },
+
+    /* =========================================================
+       Sidebar resize (pointer events for robustness)
        ========================================================= */
 
     STORAGE_KEY: "rtg-ai:sidebar-width",
@@ -315,7 +394,8 @@ const sidebar = {
     bindResizerEvents() {
         if (!this.resizerElement) return;
 
-        this.resizerElement.addEventListener("mousedown", (event) => {
+        // Use pointer events for better cross-device support
+        this.resizerElement.addEventListener("pointerdown", (event) => {
             this.startResize(event);
         });
 
@@ -328,12 +408,23 @@ const sidebar = {
             this.applyWidth();
             this.persistWidth();
         });
+
+        // Prevent text selection during resize
+        this.resizerElement.addEventListener("selectstart", (event) => {
+            event.preventDefault();
+        });
     },
 
     startResize(event) {
         if (this.isMobile()) return;
 
+        // Only handle primary pointer (mouse/touch)
+        if (event.button !== 0 && event.pointerType !== "touch") return;
+
         event.preventDefault();
+
+        // Capture pointer to continue receiving events even if cursor leaves resizer
+        this.resizerElement.setPointerCapture(event.pointerId);
 
         this.resizeState = {
             startX: event.clientX,
@@ -343,8 +434,9 @@ const sidebar = {
         this.boundResizeMove = this.onResizeMove.bind(this);
         this.boundResizeEnd = this.onResizeEnd.bind(this);
 
-        document.addEventListener("mousemove", this.boundResizeMove);
-        document.addEventListener("mouseup", this.boundResizeEnd);
+        document.addEventListener("pointermove", this.boundResizeMove);
+        document.addEventListener("pointerup", this.boundResizeEnd);
+        document.addEventListener("pointercancel", this.boundResizeEnd);
 
         document.body.classList.add("sidebar-resizing");
         this.resizerElement.classList.add("is-dragging");
@@ -360,17 +452,25 @@ const sidebar = {
         this.applyWidth();
     },
 
-    onResizeEnd() {
+    onResizeEnd(event) {
         if (!this.resizeState) return;
 
         this.resizeState = null;
 
         if (this.boundResizeMove) {
-            document.removeEventListener("mousemove", this.boundResizeMove);
+            document.removeEventListener("pointermove", this.boundResizeMove);
         }
 
         if (this.boundResizeEnd) {
-            document.removeEventListener("mouseup", this.boundResizeEnd);
+            document.removeEventListener("pointerup", this.boundResizeEnd);
+            document.removeEventListener("pointercancel", this.boundResizeEnd);
+        }
+
+        // Release pointer capture
+        try {
+            this.resizerElement.releasePointerCapture(event.pointerId);
+        } catch (e) {
+            // Ignore if capture was already released
         }
 
         document.body.classList.remove("sidebar-resizing");
@@ -411,7 +511,7 @@ const sidebar = {
     getDefaultWidth() {
         const sidebarWidth = getComputedStyle(this.sidebarElement).width;
         const parsed = Number.parseInt(sidebarWidth, 10);
-        return Number.isFinite(parsed) ? parsed : 250;
+        return Number.isFinite(parsed) ? parsed : 260;
     },
 
     applyResponsiveState() {

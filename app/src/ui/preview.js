@@ -5,6 +5,9 @@ const preview = {
     objectCount: null,
     placeholder: null,
     lang: null,
+    drawer: null,
+    closeButton: null,
+    clearButton: null,
 
     currentBuild: null,
     config: null,
@@ -14,15 +17,31 @@ const preview = {
     async initialize({ lang } = {}) {
         this.lang = lang || null;
 
+        this.drawer = document.querySelector("#preview-drawer");
         this.mount = document.querySelector("#rtg-preview-mount");
         this.objectCount = document.querySelector("#object-count");
-        this.placeholder = document.querySelector(".preview-placeholder");
+        this.placeholder = this.mount?.querySelector(".preview-placeholder");
+        this.closeButton = document.querySelector("#close-preview-button");
+        this.clearButton = document.querySelector("#clear-preview-button");
+
+        if (!this.drawer) {
+            throw new Error("Preview drawer not found.");
+        }
 
         if (!this.mount) {
             throw new Error("RtG preview mount not found.");
         }
 
+        if (!this.closeButton) {
+            throw new Error("Close preview button not found.");
+        }
+
+        if (!this.clearButton) {
+            throw new Error("Clear preview button not found.");
+        }
+
         this.applyTranslations();
+        this.bindEvents();
 
         await this.loadPreviewer();
     },
@@ -51,6 +70,16 @@ const preview = {
                 "Genera una build para verla aquí."
             );
         }
+    },
+
+    bindEvents() {
+        this.closeButton.addEventListener("click", () => {
+            this.hide();
+        });
+
+        this.clearButton.addEventListener("click", () => {
+            this.clear();
+        });
     },
 
     async loadPreviewer() {
@@ -226,6 +255,20 @@ const preview = {
 
         if (this.mount) {
             this.mount.replaceChildren();
+
+            const placeholder = document.createElement("div");
+            placeholder.className = "preview-placeholder";
+            placeholder.style.cssText = "position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 13px; color: var(--text-muted); text-align: left;";
+            placeholder.innerHTML = `
+                <div class="placeholder-icon" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-family: monospace; font-size: 17px;">+</div>
+                <div>
+                    <strong data-i18n="no-build">Sin build todavía</strong>
+                    <span data-i18n="no-build-instruction">Genera una build para verla aquí.</span>
+                </div>
+            `;
+            this.mount.appendChild(placeholder);
+            this.placeholder = placeholder;
+            this.applyTranslations();
         }
 
         this.showPlaceholder();
@@ -258,7 +301,27 @@ const preview = {
         if (!this.placeholder) return;
 
         this.placeholder.hidden = false;
-        this.placeholder.textContent = message;
+        if (message !== "Sin build todavía") {
+            this.placeholder.textContent = message;
+        }
+    },
+
+    show() {
+        if (!this.drawer) return;
+
+        this.drawer.classList.add("open");
+        this.drawer.setAttribute("aria-hidden", "false");
+    },
+
+    hide() {
+        if (!this.drawer) return;
+
+        this.drawer.classList.remove("open");
+        this.drawer.setAttribute("aria-hidden", "true");
+    },
+
+    isOpen() {
+        return this.drawer?.classList.contains("open") ?? false;
     }
 };
 

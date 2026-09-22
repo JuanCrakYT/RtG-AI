@@ -17,262 +17,217 @@
     <div id="app">
 
         <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar" aria-hidden="false">
+        <aside id="sidebar" class="sidebar" aria-hidden="false" role="complementary" aria-label="Conversaciones">
             <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="Redimensionar panel de conversaciones" tabindex="0"></div>
-            <div class="sidebar-header">
+
+            <header class="sidebar-header">
                 <div class="brand">
                     <span class="brand-mark">RtG</span>
                     <span class="brand-name">RtG-AI</span>
                 </div>
 
-                <div class="sidebar-header-actions">
-                    <button
-                        id="toggle-sidebar-button"
-                        class="icon-button"
-                        type="button"
-                        aria-label="Ocultar conversaciones"
-                        title="Ocultar conversaciones"
-                    >
-                        ×
-                    </button>
-
-                    <button
-                        id="new-chat-button"
-                        class="icon-button"
-                        type="button"
-                        aria-label="Nueva conversación"
-                        title="Nueva conversación"
-                    >
-                        +
-                    </button>
-                </div>
-            </div>
-
-            <div class="sidebar-section">
                 <button
-                    id="new-chat"
-                    class="new-chat-button"
+                    id="new-chat-button"
+                    class="icon-button new-chat-trigger"
                     type="button"
+                    aria-label="Nueva conversación"
+                    title="Nueva conversación"
                 >
-                    <span>+</span>
-                    <span data-i18n="new-chat">Nueva conversación</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                 </button>
+            </header>
+
+            <div class="sidebar-content">
+                <section class="sidebar-section" aria-label="Nueva conversación">
+                    <button
+                        id="new-chat"
+                        class="new-chat-button"
+                        type="button"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                        <span data-i18n="new-chat">Nueva conversación</span>
+                    </button>
+                </section>
+
+                <section class="sidebar-section conversations-section" aria-label="Conversaciones recientes">
+                    <div class="section-label" data-i18n="recent">RECIENTES</div>
+
+                    <div id="conversation-list" class="conversation-list" role="list">
+                        <!-- Conversations are inserted by sidebar.js -->
+                    </div>
+                </section>
             </div>
 
-            <div class="conversations">
-                <div class="section-label" data-i18n="chats">CONVERSACIONES</div>
+            <footer class="sidebar-footer">
+                <div class="sidebar-footer-top">
+                    <button
+                        id="settings-button"
+                        class="footer-button"
+                        type="button"
+                        aria-label="Configuración"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 21.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
 
-                <div id="conversation-list" class="conversation-list">
-                    <!-- Conversations are inserted by chatManager/sidebar -->
+                    <button
+                        id="toggle-theme-button"
+                        class="footer-button"
+                        type="button"
+                        aria-label="Cambiar tema"
+                    >
+                        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </button>
                 </div>
-            </div>
 
-            <div class="sidebar-footer">
                 <div class="status">
-                    <span class="status-dot"></span>
+                    <span class="status-dot" aria-hidden="true"></span>
                     <span>RtG-AI</span>
                 </div>
-            </div>
+            </footer>
         </aside>
 
+        <!-- Sidebar overlay (mobile) -->
+        <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
 
         <!-- Main application -->
-        <main class="main">
+        <main class="main" role="main">
 
-            <!-- Header -->
-            <header class="topbar">
-                <div class="topbar-title">
+            <!-- Chat area -->
+            <div class="chat-area">
+
+                <!-- Minimal header -->
+                <header class="chat-header" role="banner">
                     <button
                         id="show-sidebar-button"
                         class="icon-button show-sidebar-button"
                         type="button"
-                        data-i18n-aria="show-conversations"
                         aria-label="Mostrar conversaciones"
                         title="Mostrar conversaciones"
                     >
-                        ☰
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
                     </button>
 
-                    <span class="title-mark">RtG //</span>
-                    <span>Build Console</span>
-                </div>
-
-                <div class="topbar-actions">
-                    <button
-                        id="view-json-button"
-                        class="toolbar-button"
-                        type="button"
-                        data-i18n="see-json"
-                    >
-                        Ver JSON
-                    </button>
-
-                    <button
-                        id="reset-button"
-                        class="toolbar-button"
-                        type="button"
-                        data-i18n="restart"
-                    >
-                        Reiniciar
-                    </button>
-                </div>
-            </header>
-
-
-            <!-- Workspace -->
-            <div class="workspace">
-
-                <!-- Chat -->
-                <section class="chat-panel">
-
-                    <div class="chat-header">
-                        <div>
-                            <h1 data-i18n="build-rtg-ai">Construye con RtG-AI</h1>
-                            <p data-i18n="build-rtg-ai-desc">
-                                Describe lo que quieres construir y la IA
-                                generará el build de Road to Gramby's.
-                            </p>
-                        </div>
+                    <div class="chat-header-title">
+                        <h1 data-i18n="build-rtg-ai">Construye con RtG-AI</h1>
                     </div>
 
-
-                    <!-- Quick prompts -->
-                    <div
-                        id="quick-prompts"
-                        class="quick-prompts"
-                        aria-label="Prompts rápidos"
-                    >
-                        <!-- Suggested prompts are inserted by suggested.js -->
-                    </div>
-
-
-                    <!-- Messages -->
-                    <div
-                        id="chat-messages"
-                        class="chat-messages"
-                        aria-live="polite"
-                    >
-                        <!-- Messages are inserted by chat.js -->
-                    </div>
-
-
-                    <!-- Input -->
-                    <div class="input-area">
-
-                        <div class="model-row">
-                            <label for="model-selector" data-i18n="model">Modelo</label>
-
-                            <select id="model-selector">
-                                <!-- Models are inserted by modelSelector.js -->
-                            </select>
+                    <div class="chat-header-actions">
+                        <div class="header-model-selector" id="header-model-selector">
+                            <!-- Model selector rendered by modelSelector.js -->
                         </div>
 
-<div class="input-container">
+                        <button
+                            id="view-json-button"
+                            class="icon-button toolbar-button"
+                            type="button"
+                            aria-label="Ver JSON"
+                            title="Ver JSON"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v20M23 12l-5 5M23 12l-5-5M2 12h6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H2"/></svg>
+                        </button>
 
-                            <textarea
-                                id="chat-input"
-                                rows="1"
-                                placeholder="Describe tu build..."
-                                aria-label="mensaje"
-                            ></textarea>
+                        <button
+                            id="view-preview-button"
+                            class="icon-button toolbar-button"
+                            type="button"
+                            aria-label="Ver vista previa"
+                            title="Ver vista previa"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        </button>
+
+                        <button
+                            id="reset-button"
+                            class="icon-button toolbar-button"
+                            type="button"
+                            aria-label="Reiniciar conversación"
+                            title="Reiniciar conversación"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Messages -->
+                <div
+                    id="chat-messages"
+                    class="chat-messages"
+                    aria-live="polite"
+                    aria-label="Conversación"
+                >
+                    <!-- Messages are inserted by chat.js -->
+                </div>
+
+                <!-- Quick prompts (shown when no messages) -->
+                <div
+                    id="quick-prompts"
+                    class="quick-prompts"
+                    aria-label="Sugerencias rápidas"
+                >
+                    <!-- Suggested prompts are inserted by suggested.js -->
+                </div>
+
+                <!-- Input / Composer -->
+                <div class="composer" role="form" aria-label="Entrada de chat">
+                    <div class="composer-inner">
+                        <textarea
+                            id="chat-input"
+                            rows="1"
+                            placeholder="Describe lo que quieres construir..."
+                            aria-label="Mensaje"
+                        ></textarea>
+
+                        <div class="composer-footer">
+                            <div class="composer-actions">
+                                <!-- Secondary actions can go here -->
+                            </div>
 
                             <button
                                 id="send-button"
                                 class="send-button"
                                 type="button"
                                 disabled
-                                aria-label="Generar respuesta"
+                                aria-label="Enviar"
                             >
-                                →
-                            </button>
-
-                        </div>
-
-                        <div class="input-hint">
-                            <span data-i18n="send">Enter para enviar</span>
-                            <span data-i18n="new-line">Shift + Enter para nueva línea</span>
-                        </div>
-
-                    </div>
-
-                </section>
-
-
-                <!-- Preview -->
-                <section class="preview-panel">
-
-                    <div class="preview-header">
-                        <div>
-                            <span class="panel-label">PREVIEW</span>
-                            <span id="object-count">0 objetos</span>
-                        </div>
-
-                        <div class="preview-actions">
-                            <button
-                                id="clear-preview-button"
-                                class="toolbar-button"
-                                type="button"
-                                data-i18n="clean"
-                            >
-                                Limpiar
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                             </button>
                         </div>
                     </div>
 
-                    <div
-                        id="rtg-preview"
-                        class="preview-container"
-                    >
-                        <div
-                            id="rtg-preview-mount"
-                            class="preview-mount"
-                        >
-                            <div class="preview-placeholder">
-                                <div class="placeholder-icon">
-                                    +
-                                </div>
-
-                                <div>
-                                    <strong data-i18n="no-build">Sin build todavía</strong>
-                                    <span data-i18n="no-build-instruction">
-                                        Genera una build para verla aquí.
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="composer-hint">
+                        <span data-i18n="send">Enter para enviar</span>
+                        <span data-i18n="new-line">Shift + Enter para nueva línea</span>
                     </div>
-
-                </section>
+                </div>
 
             </div>
 
         </main>
-
 
         <!-- JSON drawer -->
         <aside
             id="json-drawer"
             class="json-drawer"
             aria-hidden="true"
+            role="dialog"
+            aria-label="Build JSON"
         >
-            <div class="json-header">
-
+            <header class="json-header">
                 <div>
                     <span class="panel-label">BUILD JSON</span>
                     <span id="json-object-count">0 objetos</span>
                 </div>
 
-<button
+                <button
                     id="close-json-button"
                     class="icon-button"
                     type="button"
-                    data-i18n-aria="close-json"
-                    aria-label="Close JSON"
+                    aria-label="Cerrar JSON"
                 >
-                    ×
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
-
-            </div>
+            </header>
 
             <div class="json-toolbar">
                 <button
@@ -300,12 +255,173 @@
             ><code>[]</code></pre>
         </aside>
 
+        <!-- Preview drawer -->
+        <aside
+            id="preview-drawer"
+            class="json-drawer preview-drawer"
+            aria-hidden="true"
+            role="dialog"
+            aria-label="Vista previa"
+        >
+            <header class="json-header">
+                <div>
+                    <span class="panel-label">PREVIEW</span>
+                    <span id="object-count">0 objetos</span>
+                </div>
+
+                <button
+                    id="close-preview-button"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Cerrar vista previa"
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </header>
+
+            <div class="json-toolbar">
+                <button
+                    id="clear-preview-button"
+                    type="button"
+                    class="toolbar-button"
+                    data-i18n="clean"
+                >
+                    Limpiar
+                </button>
+            </div>
+
+            <div
+                id="rtg-preview"
+                class="preview-container"
+                style="flex: 1; min-height: 0; position: relative; overflow: hidden; background-color: #0b0d10;"
+            >
+                <div
+                    id="rtg-preview-mount"
+                    class="preview-mount"
+                    style="width: 100%; height: 100%; position: relative;"
+                >
+                    <div class="preview-placeholder" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 13px; color: var(--text-muted); text-align: left;">
+                        <div class="placeholder-icon" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-family: monospace; font-size: 17px;">+</div>
+                        <div>
+                            <strong data-i18n="no-build">Sin build todavía</strong>
+                            <span data-i18n="no-build-instruction">Genera una build para verla aquí.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Settings drawer -->
+        <aside
+            id="settings-drawer"
+            class="json-drawer settings-drawer"
+            aria-hidden="true"
+            role="dialog"
+            aria-label="Configuración"
+        >
+            <header class="json-header">
+                <div>
+                    <span class="panel-label">SETTINGS</span>
+                </div>
+
+                <button
+                    id="close-settings-button"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Cerrar configuración"
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </header>
+
+            <div class="settings-content" role="list" aria-label="Opciones de configuración">
+                <!-- Theme section -->
+                <section class="settings-section" aria-labelledby="theme-heading">
+                    <h2 id="theme-heading" class="settings-section-title" data-i18n="theme">Tema</h2>
+                    <div class="settings-options">
+                        <button
+                            type="button"
+                            class="setting-option"
+                            data-theme="auto"
+                            role="listitem"
+                            aria-pressed="false"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                            <span data-i18n="theme-auto">Sistema (Auto)</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="setting-option"
+                            data-theme="light"
+                            role="listitem"
+                            aria-pressed="false"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                            <span data-i18n="theme-light">Claro</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="setting-option"
+                            data-theme="dark"
+                            role="listitem"
+                            aria-pressed="false"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                            <span data-i18n="theme-dark">Oscuro</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Language section -->
+                <section class="settings-section" aria-labelledby="language-heading">
+                    <h2 id="language-heading" class="settings-section-title" data-i18n="language">Idioma</h2>
+                    <div class="settings-options">
+                        <select id="language-select" class="setting-select" aria-label="Seleccionar idioma">
+                            <!-- Options populated by settings.js -->
+                        </select>
+                    </div>
+                </section>
+
+                <!-- Model section -->
+                <section class="settings-section" aria-labelledby="model-heading">
+                    <h2 id="model-heading" class="settings-section-title" data-i18n="model">Modelo</h2>
+                    <div class="settings-options">
+                        <select id="settings-model-select" class="setting-select" aria-label="Seleccionar modelo">
+                            <!-- Options populated by modelSelector.js -->
+                        </select>
+                    </div>
+                </section>
+
+                <!-- Data section -->
+                <section class="settings-section" aria-labelledby="data-heading">
+                    <h2 id="data-heading" class="settings-section-title" data-i18n="data">Datos</h2>
+                    <div class="settings-options">
+                        <button
+                            type="button"
+                            class="setting-option danger"
+                            id="clear-conversations-button"
+                            role="listitem"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                            <span data-i18n="clear-all-chats">Eliminar todas las conversaciones</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- About section -->
+                <section class="settings-section" aria-labelledby="about-heading">
+                    <h2 id="about-heading" class="settings-section-title" data-i18n="about">Acerca de</h2>
+                    <div class="settings-options">
+                        <div class="setting-info">
+                            <span class="setting-info-label" data-i18n="version">Versión</span>
+                            <span class="setting-info-value" id="app-version">0.1.0</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </aside>
+
     </div>
-
-
-    <!-- Sidebar overlay (mobile) -->
-    <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
-
 
     <!-- Application -->
     <script type="module" src="./src/main.js"></script>

@@ -1,13 +1,14 @@
 const modelSelector = {
     modelManager: null,
     selectElement: null,
+    headerContainer: null,
 
     initialize({ modelManager }) {
         this.modelManager = modelManager;
-        this.selectElement = document.querySelector("#model-selector");
+        this.headerContainer = document.querySelector("#header-model-selector");
 
-        if (!this.selectElement) {
-            throw new Error("Model selector not found.");
+        if (!this.headerContainer) {
+            throw new Error("Header model selector container not found.");
         }
 
         this.render();
@@ -18,24 +19,22 @@ const modelSelector = {
         const models = this.modelManager.list();
         const currentModel = this.modelManager.getCurrent();
 
-        this.selectElement.replaceChildren();
+        this.headerContainer.innerHTML = `
+            <select id="model-selector" aria-label="Seleccionar modelo">
+                ${models.map(model => `
+                    <option value="${model.id}" ${currentModel?.id === model.id ? "selected" : ""} ${!model.available ? "disabled" : ""}>
+                        ${model.name}
+                    </option>
+                `).join("")}
+            </select>
+        `;
 
-        for (const model of models) {
-            const option = document.createElement("option");
-
-            option.value = model.id;
-            option.textContent = model.name;
-            option.disabled = !model.available;
-
-            if (currentModel?.id === model.id) {
-                option.selected = true;
-            }
-
-            this.selectElement.appendChild(option);
-        }
+        this.selectElement = document.querySelector("#model-selector");
     },
 
     bindEvents() {
+        if (!this.selectElement) return;
+
         this.selectElement.addEventListener("change", async () => {
             await this.select(this.selectElement.value);
         });
@@ -45,7 +44,9 @@ const modelSelector = {
         try {
             const model = await this.modelManager.select(modelId);
 
-            this.selectElement.value = model.id;
+            if (this.selectElement) {
+                this.selectElement.value = model.id;
+            }
 
             const conversationEvent = new CustomEvent(
                 "rtg-ai:model-selected",

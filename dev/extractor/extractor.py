@@ -12,11 +12,16 @@ Reglas clave:
 
 import json
 from pathlib import Path
+import re
 
 DEV_DIR = Path(__file__).resolve().parent.parent
 JSON_DIR = DEV_DIR / "json"
 TOKENS_PATH = DEV_DIR / "tokens.json"
 UNKNOWN_PATH = DEV_DIR / "unknown-properties.json"
+ROOT_DIR = DEV_DIR.parent.parent.parent
+DATA_LANG_PATH = ROOT_DIR / "RtG Language" / "data.json"
+EXTRACTOR_REL_PATH = Path(__file__).resolve().relative_to(ROOT_DIR).as_posix()
+UUID_PATTERN = re.compile(r'^\{?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}?$')
 
 
 def load_json(path, default):
@@ -183,6 +188,139 @@ def _note_property(prop_name, value, known_properties, unknown_data, observed_pr
     unknown_data["Properties"][section][category].append(prop_name)
     return 1
 
+
+def is_uuid_like(key):
+    return bool(UUID_PATTERN.match(key))
+
+
+def walk_container(value, known_properties, unknown_data, observed_properties):
+    """Recorre recursivamente un valor tipo dict/list buscando propiedades
+    anidadas. Claves con forma de UUID se tratan como identificadores
+    transparentes (se atraviesan sin registrarse como propiedad)."""
+    count = 0
+    if isinstance(value, dict):
+        for key, sub_value in value.items():
+            if is_uuid_like(key):
+                count += walk_container(sub_value, known_properties, unknown_data, observed_properties)
+            else:
+                count += _note_property(key, sub_value, known_properties, unknown_data, observed_properties)
+                if isinstance(sub_value, (dict, list)):
+                    count += walk_container(sub_value, known_properties, unknown_data, observed_properties)
+    elif isinstance(value, list):
+        for item in value:
+            if isinstance(item, (dict, list)):
+                count += walk_container(item, known_properties, unknown_data, observed_properties)
+    return count
+
+def _find_first_object_bounds(content):
+    depth = 0
+    obj_start = -1
+    obj_end = -1
+    in_string = False
+    escape = False
+
+    for i, ch in enumerate(content):
+        if escape:
+            escape = False
+            continue
+        if ch == '\\':
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch == '[' and depth == 0 and obj_start == -1:
+            j = i + 1
+            while j < len(content) and content[j] in ' \t\n\r':
+                j += 1
+            if j < len(content) and content[j] == '{':
+                obj_start = j
+        elif obj_start != -1:
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    obj_end = i + 1
+                    break
+
+    return obj_start, obj_end
+
+
+def _find_last_key_close(content, obj_start, obj_end):
+    depth = 0
+    last_key_close = -1
+    in_string = False
+    escape = False
+
+    for i in range(obj_start, obj_end):
+        ch = content[i]
+        if escape:
+            escape = False
+            continue
+        if ch == '\\':
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 1:
+                last_key_close = i
+
+    return last_key_close
+
+
+def register_data_lang_source(tokens_data):
+    data = load_json(DATA_LANG_PATH, [])
+    if not isinstance(data, list):
+        data = [{}]
+    if not data or not isinstance(data[0], dict):
+        data.insert(0, {})
+
+    entry = data[0]
+    entry_without_source = {k: v for k, v in entry.items() if k != "Source"}
+    data_matches = entry_without_source == tokens_data[0]
+    has_source = entry.get("Source") == EXTRACTOR_REL_PATH
+
+    if data_matches and has_source:
+        return
+
+    with open(DATA_LANG_PATH, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    obj_start, obj_end = _find_first_object_bounds(content)
+    if obj_start == -1 or obj_end == -1:
+        return
+
+    if data_matches:
+        last_key_close = _find_last_key_close(content, obj_start, obj_end)
+        if last_key_close == -1:
+            return
+        line_start = content.rfind('\n', 0, last_key_close) + 1
+        key_indent = content[line_start:last_key_close]
+        between = content[last_key_close + 1:obj_end]
+        source_text = ',\n' + key_indent + json.dumps("Source", ensure_ascii=False) + ': ' + json.dumps(EXTRACTOR_REL_PATH, ensure_ascii=False)
+        new_content = content[:last_key_close + 1] + source_text + between + content[obj_end:]
+    else:
+        new_entry = json.loads(json.dumps(tokens_data[0]))
+        new_entry["Source"] = EXTRACTOR_REL_PATH
+        formatted = dump_pretty([new_entry])
+        formatted_lines = formatted.split('\n')
+        first_obj_text = '\n'.join(formatted_lines[1:-1])
+        new_content = content[:obj_start] + first_obj_text.lstrip() + content[obj_end:]
+
+    with open(DATA_LANG_PATH, "w", encoding="utf-8") as f:
+        f.write(new_content)
+
+
 def run(report=None, should_stop=None, ask=None):
     tokens_data = load_json(TOKENS_PATH, [{"Names": {"Objects": [], "Properties": {}}}])
     unknown_data = load_json(UNKNOWN_PATH, {})
@@ -215,14 +353,10 @@ def run(report=None, should_stop=None, ask=None):
             for prop_name, value in properties.items():
                 new_properties += _note_property(prop_name, value, known_properties, unknown_data, observed_properties)
 
-                if prop_name == "EphemeralAttachments" and isinstance(value, dict):
-                    for _uuid, attachment in value.items():
-                        if not isinstance(attachment, dict):
-                            continue
-                        for inner_name, inner_value in attachment.items():
-                            new_properties += _note_property(
-                                inner_name, inner_value, known_properties, unknown_data, observed_properties
-                            )
+            for prop_name, value in properties.items():
+                new_properties += _note_property(prop_name, value, known_properties, unknown_data, observed_properties)
+                if isinstance(value, (dict, list)):
+                    new_properties += walk_container(value, known_properties, unknown_data, observed_properties)
 
         if report:
             report((i + 1) / total * 100, f"Escaneado {path.name} ({i + 1}/{total})")
@@ -261,6 +395,8 @@ def run(report=None, should_stop=None, ask=None):
 
     with open(UNKNOWN_PATH, "w", encoding="utf-8") as f:
         json.dump(unknown_data, f, indent=2, ensure_ascii=False)
+
+    register_data_lang_source(tokens_data)
 
     msg = (f"Objetos nuevos: {new_objects} | Propiedades nuevas: {new_properties} | "
            f"Promovidos: objetos {promoted_objects}, propiedades {promoted_props}")

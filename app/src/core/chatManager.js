@@ -1,71 +1,132 @@
-import { ai } from "./core/ai.js";
-import { chatManager } from "./core/chatManager.js";
-import { feedback } from "./core/feedback.js";
-import { modelManager } from "./core/modelManager.js";
-import { storage } from "./core/storage.js";
+import { storage } from "./storage.js";
 
-import { chat } from "./ui/chat.js";
-import { feedbackUI } from "./ui/feedback.js";
-import { input } from "./ui/input.js";
-import { modelSelector } from "./ui/modelSelector.js";
-import { preview } from "./ui/preview.js";
-import { sidebar } from "./ui/sidebar.js";
+const STORAGE_KEY = "rtg-ai:conversations";
+const CURRENT_KEY = "rtg-ai:current-conversation";
 
+const chatManager = {
+    conversations: [],
+    currentConversationId: null,
 
-/**
- * RtG-AI application entry point.
- *
- * main.js is responsible for initializing the application
- * and connecting the core and UI modules.
- */
+    async initialize() {
+        await storage.initialize();
+        await this.loadConversations();
+    },
 
-async function initialize() {
-    console.log("RtG-AI starting...");
+    async loadConversations() {
+        try {
+            const data = await storage.get(STORAGE_KEY);
+            this.conversations = data ?? [];
 
-    await storage.initialize();
-    await modelManager.initialize();
-    await chatManager.initialize();
+            const currentId = await storage.get(CURRENT_KEY);
+            this.currentConversationId = currentId ?? null;
 
-    modelSelector.initialize({
-        modelManager
-    });
+            if (!this.currentConversationId && this.conversations.length > 0) {
+                this.currentConversationId = this.conversations[0].id;
+                await this.saveCurrent();
+            }
+        } catch (error) {
+            console.error("Failed to load conversations:", error);
+            this.conversations = [];
+            this.currentConversationId = null;
+        }
+    },
 
-    sidebar.initialize({
-        chatManager
-    });
+    getConversations() {
+        return [...this.conversations].sort((a, b) => b.updatedAt - a.updatedAt);
+    },
 
-    chat.initialize({
-        chatManager,
-        feedbackUI
-    });
+    getCurrentConversation() {
+        if (!this.currentConversationId) return null;
+        return this.conversations.find((c) => c.id === this.currentConversationId) ?? null;
+    },
 
-    input.initialize({
-        ai,
-        chatManager,
-        modelManager,
-        chat,
-        preview
-    });
+    createConversation() {
+        const conversation = {
+            id: crypto.randomUUID(),
+            title: "Nueva conversación",
+            messages: [],
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        };
 
-    feedbackUI.initialize({
-        feedback,
-        chatManager
-    });
+        this.conversations.unshift(conversation);
+        this.currentConversationId = conversation.id;
+        this.saveAll();
+        this.saveCurrent();
+        this.notifyUpdate();
 
-    preview.initialize();
+        return conversation;
+    },
 
-    await chatManager.loadCurrentConversation();
+    async selectConversation(conversationId) {
+        const conversation = this.conversations.find((c) => c.id === conversationId);
+        if (!conversation) return null;
 
-    console.log("RtG-AI ready.");
-}
+        this.currentConversationId = conversationId;
+        await this.saveCurrent();
+        this.notifyUpdate();
 
+        return conversation;
+    },
 
-/**
- * Start the application.
- */
+    addMessage(message) {
+        const conversation = this.getCurrentConversation();
+        if (!conversation) return false;
 
-initialize().catch((error) => {
-    console.error("Failed to initialize RtG-AI:", error);
+        conversation.messages.push(message);
+        conversation.updatedAt = Date.now();
 
-    document.body.classList.add("app-error");
-});
+        if (conversation.messages.length === 1) {
+            conversation.title = this.generateTitle(message.content);
+        }
+
+        this.saveAll();
+        this.notifyUpdate();
+
+        return true;
+    },
+
+    getMessages(conversationId) {
+        const conversation = this.conversations.find((c) => c.id === conversationId);
+        return conversation?.messages ?? [];
+    },
+
+    generateTitle(content) {
+        const text = String(content).trim();
+        const firstLine = text.split("\n")[0];
+        const trimmed = firstLine.slice(0, 50);
+        return trimmed + (text.length > 50 ? "..." : "");
+    },
+
+    async loadCurrentConversation() {
+        await this.loadConversations();
+        this.notifyUpdate();
+    },
+
+    notifyUpdate() {
+        document.dispatchEvent(
+            new CustomEvent("rtg-ai:conversation-updated")
+        );
+    },
+
+    saveAll() {
+        storage.set(STORAGE_KEY, this.conversations);
+    },
+
+    saveCurrent() {
+        storage.set(CURRENT_KEY, this.currentConversationId);
+    },
+
+    clearAllConversations() {
+        this.conversations = [];
+        this.currentConversationId = null;
+        this.saveAll();
+        this.saveCurrent();
+        this.notifyUpdate();
+
+        // Create a new empty conversation
+        this.createConversation();
+    }
+};
+
+export { chatManager };
