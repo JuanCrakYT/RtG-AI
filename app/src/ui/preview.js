@@ -8,11 +8,14 @@ const preview = {
     drawer: null,
     closeButton: null,
     clearButton: null,
+    viewPreviewButton: null,
 
     currentBuild: null,
     config: null,
     ready: false,
     loadingPromise: null,
+    hasPendingUpdate: false,
+    rendererState: null,
 
     async initialize({ lang } = {}) {
         this.lang = lang || null;
@@ -23,6 +26,7 @@ const preview = {
         this.placeholder = this.mount?.querySelector(".preview-placeholder");
         this.closeButton = document.querySelector("#close-preview-button");
         this.clearButton = document.querySelector("#clear-preview-button");
+        this.viewPreviewButton = document.querySelector("#view-preview-button");
 
         if (!this.drawer) {
             throw new Error("Preview drawer not found.");
@@ -116,6 +120,7 @@ const preview = {
         this.config = config;
 
         if (window.RtGPreview) {
+            this.monkeyPatchRender();
             this.ready = true;
             return;
         }
@@ -133,7 +138,202 @@ const preview = {
             );
         }
 
+        this.monkeyPatchRender();
         this.ready = true;
+    },
+
+    monkeyPatchRender() {
+        const originalRender = window.RtGPreview.render;
+        const self = this;
+
+        window.RtGPreview.render = function(build) {
+            return self.renderToMount(build);
+        };
+    },
+
+    async renderToMount(build) {
+        if (!Array.isArray(build)) {
+            throw new TypeError("RtG build must be an array.");
+        }
+
+        if (!this.ready) {
+            await this.loadPreviewer();
+        }
+
+        this.currentBuild = build;
+        this.hasPendingUpdate = false;
+        this.updateIndicator();
+
+        this.updateObjectCount(build);
+        this.hidePlaceholder();
+
+        try {
+            await this.renderInternal(build);
+        } catch (error) {
+            console.error("Failed to render RtG build:", error);
+            this.showPlaceholder("No se pudo renderizar la build.");
+            throw error;
+        }
+    },
+
+    async renderInternal(build) {
+        const RtGPreview = window.RtGPreview;
+
+        await RtGPreview.ready;
+
+        const container = this.mount;
+        if (!container) {
+            throw new Error("Preview mount not available");
+        }
+
+        container.style.position = "relative";
+        container.style.width = "100%";
+        container.style.height = "100%";
+        container.style.touchAction = "none";
+
+        container.replaceChildren();
+
+        const sceneData = RtGPreview.createScene(container);
+        const scene = sceneData.scene;
+        const camera = sceneData.camera;
+        const renderer = sceneData.renderer;
+
+        const objects = RtGPreview.parseBuild(build);
+
+        const loadedObjects = [];
+        const objectMap = new Array(objects.length);
+
+        const loadingStartTime = Date.now();
+
+        let loadingScreen = null;
+        if (RtGPreview.createLoadingScreen) {
+            loadingScreen = RtGPreview.createLoadingScreen();
+        }
+
+        let loadedCount = 0;
+        const promises = objects.map((objData, index) => {
+            return RtGPreview.loadModel(scene, objData.type).then((object) => {
+                objectMap[index] = loadedObjects.length;
+                loadedObjects.push(object);
+                loadedCount++;
+                if (loadingScreen && objects.length > 0) {
+                    loadingScreen.setProgress(Math.ceil((loadedCount / objects.length) * 100));
+                }
+                return object;
+            }).catch((err) => {
+                if (RtGPreview.showAlert) {
+                    RtGPreview.showAlert("Failed to load model: " + objData.type + ".obj", "error");
+                }
+                objectMap[index] = undefined;
+                loadedCount++;
+                if (loadingScreen && objects.length > 0) {
+                    loadingScreen.setProgress(Math.ceil((loadedCount / objects.length) * 100));
+                }
+                return null;
+            });
+        });
+
+        if (objects.length === 0 && loadingScreen) {
+            loadingScreen.setProgress(100);
+        }
+
+        const finalizeRender = () => {
+            if (loadingScreen) {
+                loadingScreen.hide();
+                loadingScreen = null;
+            }
+
+            if (RtGPreview.arrangeDisconnectedObjects) {
+                RtGPreview.arrangeDisconnectedObjects(objects, loadedObjects, objectMap);
+            }
+            if (RtGPreview.updateGridSize) {
+                RtGPreview.updateGridSize(loadedObjects);
+            }
+
+            const targetPoint = new THREE.Vector3(0, 0, 0);
+            if (loadedObjects.length > 0 && RtGPreview.frameBuild) {
+                RtGPreview.frameBuild(camera, loadedObjects);
+            }
+
+            const resizeHandler = () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            };
+            window.addEventListener("resize", resizeHandler);
+
+            this.rendererState = {
+                container,
+                scene,
+                camera,
+                renderer,
+                animationId: 0,
+                resizeHandler,
+            };
+
+            if (RtGPreview.setupInteraction) {
+                this.rendererState.interaction = RtGPreview.setupInteraction(container, camera, targetPoint);
+            }
+
+            if (RtGPreview.computeBuildStats && RtGPreview.panel) {
+                const stats = RtGPreview.computeBuildStats(build, loadedObjects);
+                RtGPreview.panel.updateStats(stats);
+            }
+
+            const animate = () => {
+                if (!this.rendererState) return;
+                this.rendererState.animationId = requestAnimationFrame(animate);
+                renderer.render(scene, camera);
+            };
+
+            animate();
+        };
+
+        await Promise.all(promises).catch(() => {});
+
+        const elapsed = Date.now() - loadingStartTime;
+        const remaining = Math.max(0, 1000 - elapsed);
+        await new Promise((resolve) => setTimeout(resolve, remaining));
+
+        finalizeRender();
+    },
+
+    clear() {
+        this.currentBuild = null;
+        this.hasPendingUpdate = false;
+        this.updateIndicator();
+
+        this.updateObjectCount([]);
+
+        if (this.rendererState) {
+            cancelAnimationFrame(this.rendererState.animationId);
+            window.removeEventListener("resize", this.rendererState.resizeHandler);
+            if (this.rendererState.interaction?.stop) {
+                this.rendererState.interaction.stop();
+            }
+            this.rendererState.renderer?.dispose();
+            this.rendererState = null;
+        }
+
+        if (this.mount) {
+            this.mount.replaceChildren();
+
+            const placeholder = document.createElement("div");
+            placeholder.className = "preview-placeholder";
+            placeholder.style.cssText = "position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 13px; color: var(--text-muted); text-align: left;";
+            placeholder.innerHTML = `
+                <div class="placeholder-icon" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-family: monospace; font-size: 17px;">+</div>
+                <div>
+                    <strong data-i18n="no-build">Sin build todavía</strong>
+                    <span data-i18n="no-build-instruction">Genera una build para verla aquí.</span>
+                </div>
+            `;
+            this.mount.appendChild(placeholder);
+            this.placeholder = placeholder;
+            this.applyTranslations();
+        }
+
+        this.showPlaceholder();
     },
 
     loadScript(url) {
@@ -218,9 +418,7 @@ const preview = {
 
     async render(build) {
         if (!Array.isArray(build)) {
-            throw new TypeError(
-                "RtG build must be an array."
-            );
+            throw new TypeError("RtG build must be an array.");
         }
 
         if (!this.ready) {
@@ -229,29 +427,41 @@ const preview = {
 
         this.currentBuild = build;
 
-        this.updateObjectCount(build);
-        this.hidePlaceholder();
+        if (this.isOpen()) {
+            this.hasPendingUpdate = false;
+            this.updateIndicator();
+            this.updateObjectCount(build);
+            this.hidePlaceholder();
 
-        try {
-            window.RtGPreview.render(build);
-        } catch (error) {
-            console.error(
-                "Failed to render RtG build:",
-                error
-            );
-
-            this.showPlaceholder(
-                "No se pudo renderizar la build."
-            );
-
-            throw error;
+            try {
+                await this.renderInternal(build);
+            } catch (error) {
+                console.error("Failed to render RtG build:", error);
+                this.showPlaceholder("No se pudo renderizar la build.");
+                throw error;
+            }
+        } else {
+            this.markPendingUpdate();
+            this.updateObjectCount(build);
         }
     },
 
     clear() {
         this.currentBuild = null;
+        this.hasPendingUpdate = false;
+        this.updateIndicator();
 
         this.updateObjectCount([]);
+
+        if (this.rendererState) {
+            cancelAnimationFrame(this.rendererState.animationId);
+            window.removeEventListener("resize", this.rendererState.resizeHandler);
+            if (this.rendererState.interaction?.stop) {
+                this.rendererState.interaction.stop();
+            }
+            this.rendererState.renderer?.dispose();
+            this.rendererState = null;
+        }
 
         if (this.mount) {
             this.mount.replaceChildren();
@@ -306,11 +516,31 @@ const preview = {
         }
     },
 
+    markPendingUpdate() {
+        this.hasPendingUpdate = true;
+        this.updateIndicator();
+    },
+
+    updateIndicator() {
+        if (!this.viewPreviewButton) return;
+
+        if (this.hasPendingUpdate) {
+            this.viewPreviewButton.classList.add("has-update");
+        } else {
+            this.viewPreviewButton.classList.remove("has-update");
+        }
+    },
+
     show() {
         if (!this.drawer) return;
 
         this.drawer.classList.add("open");
         this.drawer.setAttribute("aria-hidden", "false");
+        document.getElementById("app")?.classList.add("has-preview");
+
+        if (this.hasPendingUpdate && this.currentBuild) {
+            this.render(this.currentBuild);
+        }
     },
 
     hide() {
@@ -318,6 +548,7 @@ const preview = {
 
         this.drawer.classList.remove("open");
         this.drawer.setAttribute("aria-hidden", "true");
+        document.getElementById("app")?.classList.remove("has-preview");
     },
 
     isOpen() {

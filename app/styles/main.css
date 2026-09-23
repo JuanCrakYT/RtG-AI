@@ -40,6 +40,10 @@
     --sidebar-min-width: 200px;
     --sidebar-max-width: 360px;
 
+    --preview-width: 360px;
+    --preview-min-width: 300px;
+    --preview-max-width: 480px;
+
     --header-height: 52px;
     --composer-max-height: 200px;
 
@@ -191,6 +195,10 @@ input:focus-visible {
     position: relative;
 }
 
+#app.has-preview {
+    /* Preview open - three column layout */
+}
+
 /* =========================================================
    Sidebar
    ========================================================= */
@@ -221,6 +229,10 @@ input:focus-visible {
     width: 0;
     overflow: hidden;
     border-right: 0;
+}
+
+.sidebar.is-hidden + .main .show-sidebar-button {
+    display: inline-flex;
 }
 
 .sidebar.is-overlay {
@@ -557,6 +569,12 @@ body.sidebar-resizing * {
     flex-direction: column;
 
     background: var(--bg);
+
+    transition: flex var(--transition-normal);
+}
+
+#app.has-preview .main {
+    flex: 1 1 calc(100% - var(--preview-width));
 }
 
 /* =========================================================
@@ -1043,16 +1061,15 @@ body.sidebar-resizing * {
 }
 
 /* =========================================================
-   JSON drawer
+   Preview drawer (side panel)
    ========================================================= */
 
-.json-drawer {
-    position: fixed;
-    z-index: 20;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: min(560px, 85vw);
+.preview-drawer {
+    position: relative;
+    z-index: 10;
+    width: 0;
+    min-width: 0;
+    flex: 0 0 0;
 
     display: none;
     flex-direction: column;
@@ -1061,25 +1078,27 @@ body.sidebar-resizing * {
     border-left: 1px solid var(--border);
     box-shadow: var(--shadow-lg);
 
-    animation: drawerIn 0.2s ease-out;
+    overflow: hidden;
+
+    transition:
+        width var(--transition-normal),
+        flex var(--transition-normal),
+        border-left-width var(--transition-normal);
 }
 
-@keyframes drawerIn {
-    from {
-        opacity: 0;
-        transform: translateX(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.json-drawer.open {
+.preview-drawer.open {
     display: flex;
+    width: var(--preview-width);
+    flex: 0 0 var(--preview-width);
+    border-left-width: 1px;
 }
 
-.json-header {
+#app.has-preview .preview-drawer.open {
+    width: var(--preview-width);
+    flex: 0 0 var(--preview-width);
+}
+
+.preview-drawer .json-header {
     height: 56px;
     flex: 0 0 56px;
     display: flex;
@@ -1089,66 +1108,49 @@ body.sidebar-resizing * {
     border-bottom: 1px solid var(--border);
 }
 
-.json-header > div {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.panel-label {
-    color: var(--text-muted);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-}
-
-#json-object-count,
-#object-count {
-    color: var(--text-muted);
-    font-size: 12px;
-}
-
-.json-toolbar {
+.preview-drawer .json-toolbar {
     display: flex;
     gap: 8px;
     padding: 12px 16px;
     border-bottom: 1px solid var(--border-soft);
 }
 
-.toolbar-button {
-    min-height: 36px;
-    padding: 8px 14px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-    color: var(--text-soft);
-    font-size: 13px;
-    font-weight: 500;
-    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
-}
-
-.toolbar-button:hover {
-    background: var(--panel-hover);
-    border-color: var(--border-strong);
-    color: var(--text);
-}
-
-.json-output {
+.preview-container {
     min-height: 0;
     flex: 1;
-    margin: 0;
-    padding: 16px;
-    overflow: auto;
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1.65;
+    position: relative;
+    overflow: hidden;
+    background-color: #0b0d10;
 }
 
-.json-output code {
-    font: inherit;
+.preview-mount {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.preview-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 13px;
+    color: var(--text-muted);
+    text-align: left;
+}
+
+.placeholder-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-family: monospace;
+    font-size: 17px;
 }
 
 /* =========================================================
@@ -1156,6 +1158,10 @@ body.sidebar-resizing * {
    ========================================================= */
 
 .settings-drawer {
+    width: min(400px, 90vw);
+}
+
+.developer-drawer {
     width: min(400px, 90vw);
 }
 
@@ -1194,7 +1200,7 @@ body.sidebar-resizing * {
 /* Theme options as radio-like buttons */
 .setting-option {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     width: 100%;
     padding: 12px 14px;
@@ -1214,6 +1220,29 @@ body.sidebar-resizing * {
         background var(--transition-fast),
         border-color var(--transition-fast),
         color var(--transition-fast);
+}
+
+.setting-option > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.setting-option strong {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.setting-option-desc {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    line-height: 1.3;
 }
 
 .setting-option:hover {
@@ -1527,4 +1556,163 @@ body.app-error #app {
 .error-message p {
     margin: 0;
     color: var(--text-soft);
+}
+
+/* =========================================================
+   JSON drawer (fixed overlay)
+   ========================================================= */
+
+.json-drawer {
+    position: fixed;
+    z-index: 20;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(560px, 85vw);
+
+    display: none;
+    flex-direction: column;
+
+    background: var(--bg-soft);
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+
+    animation: drawerIn 0.2s ease-out;
+}
+
+@keyframes drawerIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.json-drawer.open {
+    display: flex;
+}
+
+.json-header {
+    height: 56px;
+    flex: 0 0 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.json-header > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.panel-label {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+#json-object-count,
+#object-count {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.json-toolbar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.toolbar-button {
+    min-height: 36px;
+    padding: 8px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-small);
+    color: var(--text-soft);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.toolbar-button:hover {
+    background: var(--panel-hover);
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+
+.json-output {
+    min-height: 0;
+    flex: 1;
+    margin: 0;
+    padding: 16px;
+    overflow: auto;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.json-output code {
+    font: inherit;
+}
+
+/* =========================================================
+   Preview button update indicator
+   ========================================================= */
+
+.toolbar-button.has-update {
+    position: relative;
+}
+
+.toolbar-button.has-update::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+/* =========================================================
+   Show sidebar button (visible when sidebar hidden on desktop)
+   ========================================================= */
+
+.show-sidebar-button {
+    display: none;
+}
+
+.sidebar.is-hidden + .main .show-sidebar-button {
+    display: inline-flex;
+}
+
+@media (max-width: 768px) {
+    .show-sidebar-button {
+        display: inline-flex !important;
+    }
 }

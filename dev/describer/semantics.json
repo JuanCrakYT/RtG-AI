@@ -1,0 +1,16 @@
+{
+  "properties": {
+    "RGB": {
+      "semantic": "color",
+      "es": ["color", "color RGB"]
+    },
+    "Speed": {
+      "semantic": "speed",
+      "es": ["velocidad", "rapidez"]
+    },
+    "ActivationKey": {
+      "semantic": "activation_key",
+      "es": ["tecla de activación", "tecla"]
+    }
+  }
+}

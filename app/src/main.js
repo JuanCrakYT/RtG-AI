@@ -5,6 +5,7 @@ import { modelManager } from "./core/modelManager.js";
 import { storage } from "./core/storage.js";
 
 import { chat } from "./ui/chat.js";
+import { developer } from "./ui/developer.js";
 import { feedbackUI } from "./ui/feedback.js";
 import { input } from "./ui/input.js";
 import { lang } from "./ui/lang.js";
@@ -73,6 +74,8 @@ async function initialize() {
         sidebar
     });
 
+    developer.initialize({});
+
     // Wire up JSON drawer
     const viewJsonButton = document.querySelector("#view-json-button");
     const jsonDrawer = document.querySelector("#json-drawer");
@@ -116,6 +119,28 @@ async function initialize() {
         settingsDrawer.addEventListener("click", (event) => {
             if (event.target === settingsDrawer) {
                 settings.hide();
+            }
+        });
+    }
+
+    // Wire up Developer drawer
+    const developerButton = document.querySelector("#developer-button");
+    const closeDeveloperButton = document.querySelector("#close-developer-button");
+    const developerDrawer = document.querySelector("#developer-drawer");
+
+    if (developerButton && developerDrawer && closeDeveloperButton) {
+        developerButton.addEventListener("click", () => {
+            developer.show();
+        });
+
+        closeDeveloperButton.addEventListener("click", () => {
+            developer.hide();
+        });
+
+        // Close on click outside
+        developerDrawer.addEventListener("click", (event) => {
+            if (event.target === developerDrawer) {
+                developer.hide();
             }
         });
     }

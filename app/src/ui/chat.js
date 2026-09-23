@@ -15,6 +15,10 @@ const chat = {
         }
 
         this.render();
+
+        document.addEventListener("rtg-ai:conversation-changed", () => {
+            this.render();
+        });
     },
 
     render() {

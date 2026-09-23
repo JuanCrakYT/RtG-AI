@@ -12,7 +12,7 @@
  *   lang.getAvailableLanguages() -> ["es", "en", ...]
  */
 
-const LANG_JSON_PATH = "../../lang.json";
+const LANG_JSON_PATH = new URL("../../lang.json", import.meta.url).href;
 
 const lang = {
     data: null,
