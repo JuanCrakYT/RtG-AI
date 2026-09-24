@@ -332,7 +332,7 @@ const preview = {
         this.drawer.setAttribute("aria-hidden", "false");
         document.getElementById("app")?.classList.add("has-preview");
 
-        if (this.hasPendingUpdate && this.currentBuild) {
+        if (this.currentBuild) {
             this.render(this.currentBuild);
         }
     },
