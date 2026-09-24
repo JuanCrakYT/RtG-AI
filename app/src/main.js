@@ -55,7 +55,8 @@ async function initialize() {
     });
 
     suggested.initialize({
-        input
+        input,
+        lang
     });
 
     feedbackUI.initialize({

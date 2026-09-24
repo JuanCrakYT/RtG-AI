@@ -14,10 +14,11 @@ const suggested = {
     container: null,
     input: null,
     data: null,
-    currentLanguage: "es",
+    lang: null,
 
-    async initialize({ input }) {
+    async initialize({ input, lang }) {
         this.input = input;
+        this.lang = lang;
         this.container = document.querySelector("#quick-prompts");
 
         if (!this.container) {
@@ -30,6 +31,10 @@ const suggested = {
 
         await this.loadData();
         this.render();
+
+        document.addEventListener("rtg-ai:language-changed", () => {
+            this.render();
+        });
     },
 
     async loadData() {
@@ -51,17 +56,6 @@ const suggested = {
         }
     },
 
-    getLanguage() {
-        return this.currentLanguage;
-    },
-
-    setLanguage(language) {
-        if (!language) return;
-
-        this.currentLanguage = language;
-        this.render();
-    },
-
     render() {
         if (!this.container) return;
 
@@ -71,8 +65,10 @@ const suggested = {
             return;
         }
 
+        const currentLanguage = this.lang?.getCurrentLanguage() ?? "es";
+
         for (const entry of this.data) {
-            const localized = entry?.[this.currentLanguage] ?? entry?.es;
+            const localized = entry?.[currentLanguage] ?? entry?.es;
 
             if (!localized || typeof localized !== "object") {
                 continue;

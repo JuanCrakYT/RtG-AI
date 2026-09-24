@@ -273,28 +273,7 @@ const preview = {
 
         this.updateObjectCount([]);
 
-        if (this.previewHandle) {
-            this.previewHandle.dispose();
-            this.previewHandle = null;
-        }
-
-        if (this.mount) {
-            this.mount.replaceChildren();
-
-            const placeholder = document.createElement("div");
-            placeholder.className = "preview-placeholder";
-            placeholder.style.cssText = "position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 13px; color: var(--text-muted); text-align: left;";
-            placeholder.innerHTML = `
-                <div class="placeholder-icon" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-family: monospace; font-size: 17px;">+</div>
-                <div>
-                    <strong data-i18n="no-build">Sin build todavía</strong>
-                    <span data-i18n="no-build-instruction">Genera una build para verla aquí.</span>
-                </div>
-            `;
-            this.mount.appendChild(placeholder);
-            this.placeholder = placeholder;
-            this.applyTranslations();
-        }
+        this.disposePreview();
 
         this.showPlaceholder();
     },
@@ -361,9 +340,36 @@ const preview = {
     hide() {
         if (!this.drawer) return;
 
+        this.disposePreview();
+
         this.drawer.classList.remove("open");
         this.drawer.setAttribute("aria-hidden", "true");
         document.getElementById("app")?.classList.remove("has-preview");
+    },
+
+    disposePreview() {
+        if (this.previewHandle) {
+            this.previewHandle.dispose();
+            this.previewHandle = null;
+        }
+
+        if (this.mount) {
+            this.mount.replaceChildren();
+
+            const placeholder = document.createElement("div");
+            placeholder.className = "preview-placeholder";
+            placeholder.style.cssText = "position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 13px; color: var(--text-muted); text-align: left;";
+            placeholder.innerHTML = `
+                <div class="placeholder-icon" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-family: monospace; font-size: 17px;">+</div>
+                <div>
+                    <strong data-i18n="no-build">Sin build todavía</strong>
+                    <span data-i18n="no-build-instruction">Genera una build para verla aquí.</span>
+                </div>
+            `;
+            this.mount.appendChild(placeholder);
+            this.placeholder = placeholder;
+            this.applyTranslations();
+        }
     },
 
     isOpen() {

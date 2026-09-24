@@ -20,14 +20,39 @@ const chatManager = {
             const currentId = await storage.get(CURRENT_KEY);
             this.currentConversationId = currentId ?? null;
 
+            this.cleanupEmptyConversations();
+
             if (!this.currentConversationId && this.conversations.length > 0) {
                 this.currentConversationId = this.conversations[0].id;
                 await this.saveCurrent();
+            } else if (this.conversations.length === 0) {
+                this.createConversation();
             }
         } catch (error) {
             console.error("Failed to load conversations:", error);
             this.conversations = [];
             this.currentConversationId = null;
+            this.createConversation();
+        }
+    },
+
+    isConversationEmpty(conversation) {
+        return !conversation || !Array.isArray(conversation.messages) || conversation.messages.length === 0;
+    },
+
+    cleanupEmptyConversations() {
+        const initialLength = this.conversations.length;
+        this.conversations = this.conversations.filter((c) => !this.isConversationEmpty(c));
+
+        if (this.conversations.length !== initialLength) {
+            this.saveAll();
+        }
+
+        if (this.currentConversationId) {
+            const currentExists = this.conversations.some((c) => c.id === this.currentConversationId);
+            if (!currentExists) {
+                this.currentConversationId = this.conversations[0]?.id ?? null;
+            }
         }
     },
 
@@ -41,6 +66,12 @@ const chatManager = {
     },
 
     createConversation() {
+        const current = this.getCurrentConversation();
+
+        if (current && this.isConversationEmpty(current)) {
+            return current;
+        }
+
         const conversation = {
             id: crypto.randomUUID(),
             title: "Nueva conversación",
@@ -61,6 +92,11 @@ const chatManager = {
     async selectConversation(conversationId) {
         const conversation = this.conversations.find((c) => c.id === conversationId);
         if (!conversation) return null;
+
+        if (this.isConversationEmpty(conversation)) {
+            this.deleteConversation(conversationId);
+            return this.createConversation();
+        }
 
         this.currentConversationId = conversationId;
         await this.saveCurrent();
@@ -126,6 +162,24 @@ const chatManager = {
 
         // Create a new empty conversation
         this.createConversation();
+    },
+
+    deleteConversation(conversationId) {
+        const index = this.conversations.findIndex((c) => c.id === conversationId);
+        if (index === -1) return false;
+
+        const wasCurrent = this.currentConversationId === conversationId;
+        this.conversations.splice(index, 1);
+
+        if (wasCurrent) {
+            this.currentConversationId = this.conversations[0]?.id ?? null;
+            this.saveCurrent();
+        }
+
+        this.saveAll();
+        this.notifyUpdate();
+
+        return true;
     }
 };
 
