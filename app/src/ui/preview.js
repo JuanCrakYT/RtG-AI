@@ -16,6 +16,7 @@ const preview = {
     loadingPromise: null,
     hasPendingUpdate: false,
     previewHandle: null,
+    renderGeneration: 0,
 
     async initialize({ lang } = {}) {
         this.lang = lang || null;
@@ -251,25 +252,36 @@ const preview = {
     },
 
     async renderToMount(build) {
+        const generation = ++this.renderGeneration;
+
         if (this.previewHandle) {
             this.previewHandle.dispose();
             this.previewHandle = null;
         }
 
+        let instance;
         try {
-            this.previewHandle = await window.RtGPreview.render(build, {
+            instance = await window.RtGPreview.render(build, {
                 container: this.mount
             });
         } catch (error) {
             this.previewHandle = null;
             throw error;
         }
+
+        if (generation !== this.renderGeneration) {
+            instance.dispose();
+            return;
+        }
+
+        this.previewHandle = instance;
     },
 
     clear() {
         this.currentBuild = null;
         this.hasPendingUpdate = false;
         this.updateIndicator();
+        this.renderGeneration++;
 
         this.updateObjectCount([]);
 
@@ -333,13 +345,16 @@ const preview = {
         document.getElementById("app")?.classList.add("has-preview");
 
         if (this.currentBuild) {
-            this.render(this.currentBuild);
+            this.render(this.currentBuild).catch(() => {
+                // Error already logged in render()
+            });
         }
     },
 
     hide() {
         if (!this.drawer) return;
 
+        this.renderGeneration++;
         this.disposePreview();
 
         this.drawer.classList.remove("open");
