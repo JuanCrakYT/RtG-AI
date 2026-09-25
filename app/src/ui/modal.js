@@ -295,7 +295,8 @@ const modal = {
                     input.focus();
                 });
 
-                checkInput();
+                // Do NOT run checkInput() initially - let input start empty
+                // with button disabled and no error shown. Validation runs on first input.
             }
         }).then((result) => {
             // Capture input value BEFORE close() clears currentModal
