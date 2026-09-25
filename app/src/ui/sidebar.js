@@ -93,8 +93,6 @@ const sidebar = {
             throw new Error("Theme button not found.");
         }
 
-        modal.initialize();
-
         this.restoreWidth();
         this.bindEvents();
         this.bindResizerEvents();

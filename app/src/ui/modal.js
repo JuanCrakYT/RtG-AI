@@ -13,16 +13,23 @@ const modal = {
     previousFocus: null,
     boundKeyDown: null,
     boundFocusTrap: null,
+    _initialized: false,
 
     initialize() {
+        if (this._initialized) {
+            logger.debug("MODAL", "already initialized, skipping");
+            return;
+        }
         logger.log("INIT", "modal initializing");
         this.createOverlay();
         this.boundKeyDown = this.handleKeyDown.bind(this);
         this.boundFocusTrap = this.trapFocus.bind(this);
+        this._initialized = true;
         logger.log("INIT", "modal initialized");
     },
 
     createOverlay() {
+        if (this.overlay) return;
         this.overlay = document.createElement("div");
         this.overlay.className = "modal-overlay";
         this.overlay.setAttribute("role", "dialog");
@@ -66,9 +73,12 @@ const modal = {
             confirmButton?.addEventListener("click", handleConfirm);
             cancelButton?.addEventListener("click", handleCancel);
 
-            const focusTarget = modalElement.querySelector("[autofocus]") ||
-                modalElement.querySelector("button, input, select, textarea, [tabindex]:not([tabindex='-1'])");
-            focusTarget?.focus();
+            // Focus management: NO autofocus in HTML, only JS after DOM insertion
+            const focusTarget = modalElement.querySelector("button, input, select, textarea, [tabindex]:not([tabindex='-1'])");
+            // Use requestAnimationFrame to ensure modal is rendered before focusing
+            requestAnimationFrame(() => {
+                focusTarget?.focus();
+            });
 
             this.currentModal = {
                 element: modalElement,
@@ -180,13 +190,14 @@ const modal = {
         const iconHtml = icon ? `<div class="modal-icon">${icon}</div>` : "";
         const dangerClass = danger ? "modal-danger" : "";
 
+        // Button order: Confirm (Sí) on LEFT, Cancel (No) on RIGHT
         const content = `
             <div class="modal-content ${dangerClass}">
                 ${iconHtml}
                 ${title ? `<h2 class="modal-title">${title}</h2>` : ""}
                 ${message ? `<p class="modal-message">${message}</p>` : ""}
                 <div class="modal-actions">
-                    <button type="button" class="modal-button modal-button-confirm ${danger ? "danger" : ""}" data-modal-confirm autofocus>
+                    <button type="button" class="modal-button modal-button-confirm ${danger ? "danger" : ""}" data-modal-confirm>
                         ${confirmText}
                     </button>
                     <button type="button" class="modal-button modal-button-cancel" data-modal-cancel>
@@ -218,6 +229,7 @@ const modal = {
         logger.log("MODAL", "opened prompt dialog");
         let inputId = `modal-prompt-input-${Date.now()}`;
 
+        // Button order: Confirm (Sí) on LEFT, Cancel (No) on RIGHT
         const content = `
             <div class="modal-content modal-prompt">
                 ${title ? `<h2 class="modal-title">${title}</h2>` : ""}
@@ -228,7 +240,6 @@ const modal = {
                         id="${inputId}"
                         class="modal-input"
                         placeholder="${placeholder}"
-                        ${autofocus ? "autofocus" : ""}
                         autocomplete="off"
                         spellcheck="false"
                     >
@@ -279,13 +290,21 @@ const modal = {
                     }
                 });
 
+                // Focus input via JS (no autofocus in HTML)
+                requestAnimationFrame(() => {
+                    input.focus();
+                });
+
                 checkInput();
             }
         }).then((result) => {
-            if (result === true) {
-                const input = this.currentModal?.element?.querySelector(`#${inputId}`);
+            // Capture input value BEFORE close() clears currentModal
+            if (result === true && this.currentModal) {
+                const input = this.currentModal.element.querySelector(`#${inputId}`);
+                logger.log("MODAL", "prompt validation passed");
                 return input?.value ?? "";
             }
+            logger.log("MODAL", "user cancelled prompt");
             return null;
         });
     }
