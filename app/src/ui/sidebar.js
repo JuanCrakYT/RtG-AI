@@ -148,6 +148,68 @@ const sidebar = {
     },
 
     /* =========================================================
+       Sidebar visibility
+       ========================================================= */
+
+    updateAria() {
+        if (!this.sidebarElement) return;
+
+        this.sidebarElement.setAttribute(
+            "aria-hidden",
+            String(this.isHidden)
+        );
+    },
+
+    updateToggleLabel() {
+        if (!this.toggleButton) return;
+
+        const isHidden = this.isHidden;
+
+        this.toggleButton.setAttribute(
+            "aria-label",
+            isHidden ? "Mostrar conversaciones" : "Ocultar conversaciones"
+        );
+        this.toggleButton.setAttribute(
+            "title",
+            isHidden ? "Mostrar conversaciones" : "Ocultar conversaciones"
+        );
+    },
+
+    toggle() {
+        if (this.isHidden) {
+            this.show();
+        } else {
+            this.hide();
+        }
+    },
+
+    show() {
+        this.isHidden = false;
+        this.sidebarElement.classList.remove("is-hidden");
+        document.getElementById("app")?.classList.remove("sidebar-collapsed");
+
+        if (this.isMobile()) {
+            this.overlayElement.classList.add("is-visible");
+            this.overlayElement.setAttribute("aria-hidden", "false");
+        }
+
+        this.updateAria();
+        this.updateToggleLabel();
+    },
+
+    hide() {
+        this.isHidden = true;
+        this.sidebarElement.classList.add("is-hidden");
+        document.getElementById("app")?.classList.add("sidebar-collapsed");
+
+        this.overlayElement.classList.remove("is-visible");
+        this.overlayElement.setAttribute("aria-hidden", "true");
+
+        this.updateAria();
+        this.updateToggleLabel();
+    },
+
+    /* =========================================================
        Drag/Swipe to delete
        ========================================================= */
 
@@ -426,6 +488,73 @@ const sidebar = {
 
     refresh() {
         this.render();
+    },
+
+    render() {
+        const conversations = this.chatManager.getConversations();
+        const currentConversation =
+            this.chatManager.getCurrentConversation();
+
+        this.listElement.replaceChildren();
+
+        for (const conversation of conversations) {
+            const element = this.createConversationElement(
+                conversation,
+                conversation.id === currentConversation?.id
+            );
+
+            this.listElement.appendChild(element);
+        }
+    },
+
+    createConversationElement(conversation, active) {
+        const item = document.createElement("div");
+        item.className = "conversation-item";
+
+        if (active) {
+            item.classList.add("active");
+        }
+
+        item.dataset.conversationId = conversation.id;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "conversation-button";
+        button.textContent = conversation.title || "Nueva conversación";
+        button.title = conversation.title || "Nueva conversación";
+
+        button.addEventListener("click", () => {
+            this.selectConversation(conversation.id);
+        });
+
+        // Delete hint element
+        const deleteHint = document.createElement("div");
+        deleteHint.className = "conversation-delete-hint";
+        deleteHint.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+            <span data-i18n="delete-chat_ask">${lang.t("delete-chat_ask")}</span>
+        `;
+        item.appendChild(deleteHint);
+
+        item.appendChild(button);
+
+        // Bind drag events for swipe-to-delete
+        this.bindDragEvents(item, conversation);
+
+        return item;
+    },
+
+    createConversation() {
+        const conversation =
+            this.chatManager.createConversation();
+
+        this.render();
+
+        this.dispatchConversationChanged(conversation);
+
+        this.focusInput();
     },
 
     /* =========================================================
