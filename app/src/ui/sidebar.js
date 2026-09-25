@@ -18,6 +18,10 @@ const sidebar = {
 
     MOBILE_BREAKPOINT: 768,
 
+    isMobile() {
+        return window.innerWidth <= this.MOBILE_BREAKPOINT;
+    },
+
     MIN_WIDTH: 200,
     MAX_WIDTH: 360,
 
