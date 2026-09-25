@@ -9,6 +9,7 @@ import { developer } from "./ui/developer.js";
 import { feedbackUI } from "./ui/feedback.js";
 import { input } from "./ui/input.js";
 import { lang } from "./ui/lang.js";
+import { modal } from "./ui/modal.js";
 import { modelSelector } from "./ui/modelSelector.js";
 import { preview } from "./ui/preview.js";
 import { settings } from "./ui/settings.js";
@@ -32,6 +33,8 @@ async function initialize() {
 
     await lang.initialize();
     lang.applyToDocument();
+
+    modal.initialize();
 
     modelSelector.initialize({
         modelManager

@@ -1,3 +1,6 @@
+import { modal } from "./modal.js";
+import { lang } from "./lang.js";
+
 const sidebar = {
     chatManager: null,
     listElement: null,
@@ -22,6 +25,13 @@ const sidebar = {
     resizeState: null,
     boundResizeMove: null,
     boundResizeEnd: null,
+
+    // Drag/swipe state
+    dragState: null,
+    boundDragMove: null,
+    boundDragEnd: null,
+
+    DELETE_THRESHOLD: 100,
 
     initialize({ chatManager }) {
         this.chatManager = chatManager;
@@ -77,6 +87,8 @@ const sidebar = {
             throw new Error("Theme button not found.");
         }
 
+        modal.initialize();
+
         this.restoreWidth();
         this.bindEvents();
         this.bindResizerEvents();
@@ -131,84 +143,9 @@ const sidebar = {
         });
     },
 
-    isMobile() {
-        return window.innerWidth <= this.MOBILE_BREAKPOINT;
-    },
-
-    updateAria() {
-        if (!this.sidebarElement) return;
-
-        this.sidebarElement.setAttribute(
-            "aria-hidden",
-            String(this.isHidden)
-        );
-    },
-
-    toggle() {
-        if (this.isHidden) {
-            this.show();
-        } else {
-            this.hide();
-        }
-    },
-
-    show() {
-        this.isHidden = false;
-        this.sidebarElement.classList.remove("is-hidden");
-        document.getElementById("app")?.classList.remove("sidebar-collapsed");
-
-        if (this.isMobile()) {
-            this.overlayElement.classList.add("is-visible");
-            this.overlayElement.setAttribute("aria-hidden", "false");
-        }
-
-        this.updateAria();
-        this.updateToggleLabel();
-    },
-
-    hide() {
-        this.isHidden = true;
-        this.sidebarElement.classList.add("is-hidden");
-        document.getElementById("app")?.classList.add("sidebar-collapsed");
-
-        this.overlayElement.classList.remove("is-visible");
-        this.overlayElement.setAttribute("aria-hidden", "true");
-
-        this.updateAria();
-        this.updateToggleLabel();
-    },
-
-    updateToggleLabel() {
-        if (!this.toggleButton) return;
-
-        const isHidden = this.isHidden;
-
-        this.toggleButton.setAttribute(
-            "aria-label",
-            isHidden ? "Mostrar conversaciones" : "Ocultar conversaciones"
-        );
-        this.toggleButton.setAttribute(
-            "title",
-            isHidden ? "Mostrar conversaciones" : "Ocultar conversaciones"
-        );
-    },
-
-    render() {
-        const conversations = this.chatManager.getConversations();
-        const currentConversation =
-            this.chatManager.getCurrentConversation();
-
-        this.listElement.replaceChildren();
-
-        for (const conversation of conversations) {
-            const element = this.createConversationElement(
-                conversation,
-                conversation.id === currentConversation?.id
-            );
-
-            this.listElement.appendChild(element);
-        }
-    },
+    /* =========================================================
+       Drag/Swipe to delete
+       ========================================================= */
 
     createConversationElement(conversation, active) {
         const item = document.createElement("div");
@@ -230,38 +167,241 @@ const sidebar = {
             this.selectConversation(conversation.id);
         });
 
+        // Delete hint element
+        const deleteHint = document.createElement("div");
+        deleteHint.className = "conversation-delete-hint";
+        deleteHint.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+            <span data-i18n="delete-chat_ask">${lang.t("delete-chat_ask")}</span>
+        `;
+        item.appendChild(deleteHint);
+
         item.appendChild(button);
+
+        // Bind drag events for swipe-to-delete
+        this.bindDragEvents(item, conversation);
 
         return item;
     },
 
-    createConversation() {
-        const conversation =
-            this.chatManager.createConversation();
+    bindDragEvents(item, conversation) {
+        const button = item.querySelector(".conversation-button");
 
-        this.render();
+        const onPointerDown = (event) => {
+            // Only handle primary pointer (left click / touch)
+            if (event.button !== 0 && event.pointerType !== "touch") return;
 
-        this.dispatchConversationChanged(conversation);
+            // Ignore if target is the button but it's a click (will be handled by click)
+            // We need to distinguish between click and drag
+            this.dragState = {
+                conversationId: conversation.id,
+                item,
+                button,
+                startX: event.clientX,
+                startY: event.clientY,
+                currentX: event.clientX,
+                isDragging: false,
+                hasMoved: false,
+                startTime: Date.now()
+            };
 
-        this.focusInput();
+            this.boundDragMove = this.onDragMove.bind(this);
+            this.boundDragEnd = this.onDragEnd.bind(this);
+
+            document.addEventListener("pointermove", this.boundDragMove);
+            document.addEventListener("pointerup", this.boundDragEnd);
+            document.addEventListener("pointercancel", this.boundDragEnd);
+
+            // Capture pointer to continue receiving events
+            item.setPointerCapture(event.pointerId);
+
+            // Prevent text selection during drag
+            event.preventDefault();
+        };
+
+        const onClick = (event) => {
+            // If we dragged, don't trigger click
+            if (this.dragState?.hasMoved) {
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
+            // Normal click - let the button's click handler handle it
+        };
+
+        item.addEventListener("pointerdown", onPointerDown);
+        button.addEventListener("click", onClick);
+
+        // Store handlers for cleanup if needed
+        item._dragHandlers = { onPointerDown, onClick };
     },
 
-    async selectConversation(conversationId) {
-        const conversation =
-            await this.chatManager.selectConversation(conversationId);
+    onDragMove(event) {
+        if (!this.dragState) return;
 
-        if (!conversation) {
+        const { item, startX, startY } = this.dragState;
+        const deltaX = event.clientX - startX;
+        const deltaY = event.clientY - startY;
+
+        // Check if it's a horizontal drag (swipe right) vs vertical scroll
+        const isHorizontalDrag = Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10;
+
+        if (isHorizontalDrag) {
+            event.preventDefault();
+
+            if (!this.dragState.isDragging) {
+                this.dragState.isDragging = true;
+                item.classList.add("dragging");
+                document.body.style.userSelect = "none";
+            }
+
+            this.dragState.hasMoved = true;
+            this.dragState.currentX = event.clientX;
+
+            // Only allow rightward drag (positive deltaX)
+            const translateX = Math.max(0, deltaX);
+            item.style.transform = `translateX(${translateX}px)`;
+
+            // Show delete ready state when threshold reached
+            if (translateX >= this.DELETE_THRESHOLD) {
+                item.classList.add("swipe-delete-ready");
+            } else {
+                item.classList.remove("swipe-delete-ready");
+            }
+        } else if (!this.dragState.isDragging && Math.abs(deltaY) > 10) {
+            // Vertical scroll - cancel drag
+            this.cancelDrag();
+        }
+    },
+
+    onDragEnd(event) {
+        if (!this.dragState) return;
+
+        const { item, conversationId, isDragging, currentX, startX } = this.dragState;
+        const deltaX = currentX - startX;
+
+        // Clean up
+        document.removeEventListener("pointermove", this.boundDragMove);
+        document.removeEventListener("pointerup", this.boundDragEnd);
+        document.removeEventListener("pointercancel", this.boundDragEnd);
+
+        try {
+            item.releasePointerCapture(event.pointerId);
+        } catch (e) {
+            // Ignore
+        }
+
+        document.body.style.userSelect = "";
+
+        item.classList.remove("dragging");
+
+        if (isDragging && deltaX >= this.DELETE_THRESHOLD) {
+            // Trigger delete confirmation flow
+            item.classList.remove("swipe-delete-ready");
+            item.style.transform = "";
+            this.confirmDeleteConversation(conversationId);
+        } else {
+            // Animate back to original position
+            item.style.transition = "transform var(--transition-fast)";
+            item.style.transform = "";
+            item.classList.remove("swipe-delete-ready");
+
+            setTimeout(() => {
+                item.style.transition = "";
+            }, 200);
+        }
+
+        this.dragState = null;
+    },
+
+    cancelDrag() {
+        if (!this.dragState) return;
+
+        const { item } = this.dragState;
+
+        document.removeEventListener("pointermove", this.boundDragMove);
+        document.removeEventListener("pointerup", this.boundDragEnd);
+        document.removeEventListener("pointercancel", this.boundDragEnd);
+
+        document.body.style.userSelect = "";
+
+        item.classList.remove("dragging");
+        item.style.transition = "transform var(--transition-fast)";
+        item.style.transform = "";
+        item.classList.remove("swipe-delete-ready");
+
+        setTimeout(() => {
+            item.style.transition = "";
+        }, 200);
+
+        this.dragState = null;
+    },
+
+    async confirmDeleteConversation(conversationId) {
+        const conversation = this.chatManager.conversations.find((c) => c.id === conversationId);
+        if (!conversation) return;
+
+        const messageCount = conversation.messages.length;
+
+        // First confirmation: Yes/No
+        const confirmed = await modal.confirm({
+            title: lang.t("delete-chat_ask"),
+            message: lang.t("delete-chat_undone"),
+            confirmText: lang.t("delete-chat_yes"),
+            cancelText: lang.t("delete-chat_no"),
+            danger: true,
+            icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>`
+        });
+
+        if (!confirmed) {
             return;
         }
 
-        this.render();
+        // Second confirmation: type message count
+        const writeLeft = lang.t("delete-chat_write-left");
+        const writeRight = lang.t("delete-chat_write-right");
+        const mismatchMessage = lang.t("delete-chat_mismatch");
 
-        this.dispatchConversationChanged(conversation);
+        const inputResult = await modal.prompt({
+            title: lang.t("delete-chat_ask"),
+            message: `${writeLeft}<strong>${messageCount}</strong>${writeRight}`,
+            placeholder: String(messageCount),
+            inputType: "number",
+            confirmText: lang.t("delete-chat_yes"),
+            cancelText: lang.t("delete-chat_cancel"),
+            validate: (value) => {
+                const num = parseInt(value, 10);
+                if (Number.isNaN(num)) return mismatchMessage;
+                return num === messageCount;
+            },
+            errorMessage: mismatchMessage
+        });
 
-        this.focusInput();
+        if (inputResult === null) {
+            // User cancelled
+            return;
+        }
 
-        if (this.isMobile() && !this.isHidden) {
-            this.hide();
+        // User entered correct number - delete the conversation
+        this.deleteConversation(conversationId);
+    },
+
+    deleteConversation(conversationId) {
+        const wasCurrent = this.chatManager.currentConversationId === conversationId;
+        const deleted = this.chatManager.deleteConversation(conversationId);
+
+        if (deleted) {
+            this.render();
+
+            // If the deleted conversation was the current one, notify about change
+            if (wasCurrent) {
+                const newCurrent = this.chatManager.getCurrentConversation();
+                if (newCurrent) {
+                    this.dispatchConversationChanged(newCurrent);
+                }
+            }
         }
     },
 
