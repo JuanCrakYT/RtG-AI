@@ -8,6 +8,8 @@
  * prompts only requires editing the JSON file.
  */
 
+import { logger } from "../core/log.js";
+
 const SUGGESTED_JSON_PATH = "./src/ui/suggested.json";
 
 const suggested = {
@@ -17,6 +19,7 @@ const suggested = {
     lang: null,
 
     async initialize({ input, lang }) {
+        logger.log("INIT", "suggested initializing");
         this.input = input;
         this.lang = lang;
         this.container = document.querySelector("#quick-prompts");
@@ -35,6 +38,7 @@ const suggested = {
         document.addEventListener("rtg-ai:language-changed", () => {
             this.render();
         });
+        logger.log("INIT", "suggested initialized");
     },
 
     async loadData() {
@@ -50,8 +54,9 @@ const suggested = {
             }
 
             this.data = await response.json();
+            logger.log("NETWORK", "loaded suggested prompts");
         } catch (error) {
-            console.error("Suggested prompts loading failed:", error);
+            logger.error("NETWORK", "Suggested prompts loading failed", error);
             this.data = [];
         }
     },
@@ -100,6 +105,7 @@ const suggested = {
         button.title = prompt;
 
         button.addEventListener("click", () => {
+            logger.log("CLICK", `clicked suggested prompt ${id}`);
             this.selectPrompt(prompt);
         });
 

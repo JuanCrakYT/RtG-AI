@@ -1,3 +1,5 @@
+import { logger } from "./log.js";
+
 const feedback = {
     /**
      * Submit feedback for an AI response.
@@ -22,6 +24,7 @@ const feedback = {
 
         this.validate(data);
 
+        logger.log("FEEDBACK", `submitted rating=${rating} for message ${messageId}`);
         return this.process(data);
     },
 
@@ -101,7 +104,7 @@ const feedback = {
      * The server request will be added here later.
      */
     async process(data) {
-        console.debug("RtG-AI feedback:", data);
+        logger.debug("FEEDBACK", "processed", data);
 
         // Future server integration:
         //

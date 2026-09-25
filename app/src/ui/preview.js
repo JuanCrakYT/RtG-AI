@@ -1,5 +1,7 @@
 const PREVIEW_CONFIG_URL = "./src/ui/preview.json";
 
+import { logger } from "../core/log.js";
+
 const preview = {
     mount: null,
     objectCount: null,
@@ -19,6 +21,7 @@ const preview = {
     renderGeneration: 0,
 
     async initialize({ lang } = {}) {
+        logger.log("INIT", "preview initializing");
         this.lang = lang || null;
 
         this.drawer = document.querySelector("#preview-drawer");
@@ -49,6 +52,7 @@ const preview = {
         this.bindEvents();
 
         await this.loadPreviewer();
+        logger.log("INIT", "preview initialized");
     },
 
     t(key, fallback) {
@@ -79,10 +83,12 @@ const preview = {
 
     bindEvents() {
         this.closeButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Close Preview"');
             this.hide();
         });
 
         this.clearButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Clear Preview"');
             this.clear();
         });
     },
@@ -96,6 +102,7 @@ const preview = {
             return this.loadingPromise;
         }
 
+        logger.log("PREVIEW", "loading previewer");
         this.loadingPromise = this.loadPreviewerFromConfig();
 
         try {
@@ -122,6 +129,7 @@ const preview = {
 
         if (window.RtGPreview) {
             this.ready = true;
+            logger.log("PREVIEW", "previewer ready (already loaded)");
             return;
         }
 
@@ -139,6 +147,7 @@ const preview = {
         }
 
         this.ready = true;
+        logger.log("PREVIEW", "previewer loaded and ready");
     },
 
     loadScript(url) {
@@ -238,10 +247,12 @@ const preview = {
             this.updateObjectCount(build);
             this.hidePlaceholder();
 
+            logger.log("PREVIEW", `rendering build with ${build.length} objects`);
             try {
                 await this.renderToMount(build);
+                logger.log("PREVIEW", "render completed");
             } catch (error) {
-                console.error("Failed to render RtG build:", error);
+                logger.error("PREVIEW", "Failed to render RtG build", error);
                 this.showPlaceholder("No se pudo renderizar la build.");
                 throw error;
             }
@@ -278,6 +289,7 @@ const preview = {
     },
 
     clear() {
+        logger.log("PREVIEW", "cleared preview");
         this.currentBuild = null;
         this.hasPendingUpdate = false;
         this.updateIndicator();
@@ -340,6 +352,7 @@ const preview = {
     show() {
         if (!this.drawer) return;
 
+        logger.log("PREVIEW", "opened");
         this.drawer.classList.add("open");
         this.drawer.setAttribute("aria-hidden", "false");
         document.getElementById("app")?.classList.add("has-preview");
@@ -354,6 +367,7 @@ const preview = {
     hide() {
         if (!this.drawer) return;
 
+        logger.log("PREVIEW", "closed");
         this.renderGeneration++;
         this.disposePreview();
 
@@ -364,6 +378,7 @@ const preview = {
 
     disposePreview() {
         if (this.previewHandle) {
+            logger.debug("PREVIEW", "disposed preview instance");
             this.previewHandle.dispose();
             this.previewHandle = null;
         }

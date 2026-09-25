@@ -1,3 +1,5 @@
+import { logger } from "../core/log.js";
+
 const feedbackUI = {
     feedback: null,
     chatManager: null,
@@ -12,6 +14,8 @@ const feedbackUI = {
 
         const conversation = this.chatManager.getCurrentConversation();
         if (!conversation) return;
+
+        logger.log("FEEDBACK", `rating=${rating} for message ${message.id}`);
 
         this.feedback.submit({
             conversationId: conversation.id,

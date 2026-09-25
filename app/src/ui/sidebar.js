@@ -1,5 +1,6 @@
 import { modal } from "./modal.js";
 import { lang } from "./lang.js";
+import { logger } from "../core/log.js";
 
 const sidebar = {
     chatManager: null,
@@ -38,6 +39,7 @@ const sidebar = {
     DELETE_THRESHOLD: 100,
 
     initialize({ chatManager }) {
+        logger.log("INIT", "sidebar initializing");
         this.chatManager = chatManager;
 
         this.listElement = document.querySelector("#conversation-list");
@@ -103,34 +105,43 @@ const sidebar = {
         window.addEventListener("resize", () => {
             this.applyResponsiveState();
         });
+
+        logger.log("INIT", "sidebar initialized");
     },
 
     bindEvents() {
         this.newChatButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "New Chat"');
             this.createConversation();
         });
 
         this.newChatTrigger.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "New Chat Trigger"');
             this.createConversation();
         });
 
         this.toggleButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Toggle Sidebar"');
             this.toggle();
         });
 
         this.showButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Show Sidebar"');
             this.show();
         });
 
         this.overlayElement.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked sidebar overlay');
             this.hide();
         });
 
         this.settingsButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Settings"');
             this.openSettings();
         });
 
         this.themeButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Toggle Theme"');
             this.toggleTheme();
         });
 
@@ -176,6 +187,7 @@ const sidebar = {
     },
 
     toggle() {
+        logger.log("SIDEBAR", `toggle (was ${this.isHidden ? "hidden" : "visible"})`);
         if (this.isHidden) {
             this.show();
         } else {
@@ -184,6 +196,7 @@ const sidebar = {
     },
 
     show() {
+        logger.log("SIDEBAR", "opened");
         this.isHidden = false;
         this.sidebarElement.classList.remove("is-hidden");
         document.getElementById("app")?.classList.remove("sidebar-collapsed");
@@ -198,6 +211,7 @@ const sidebar = {
     },
 
     hide() {
+        logger.log("SIDEBAR", "closed");
         this.isHidden = true;
         this.sidebarElement.classList.add("is-hidden");
         document.getElementById("app")?.classList.add("sidebar-collapsed");
@@ -406,6 +420,7 @@ const sidebar = {
     },
 
     async confirmDeleteConversation(conversationId) {
+        logger.log("MODAL", `opened delete confirmation for ${conversationId}`);
         const conversation = this.chatManager.conversations.find((c) => c.id === conversationId);
         if (!conversation) return;
 
@@ -422,8 +437,11 @@ const sidebar = {
         });
 
         if (!confirmed) {
+            logger.log("MODAL", "user cancelled delete confirmation");
             return;
         }
+
+        logger.log("MODAL", "user confirmed delete, opening count verification");
 
         // Second confirmation: type message count
         const writeLeft = lang.t("delete-chat_write-left");
@@ -438,19 +456,21 @@ const sidebar = {
             confirmText: lang.t("delete-chat_yes"),
             cancelText: lang.t("delete-chat_cancel"),
             validate: (value) => {
-                const num = parseInt(value, 10);
-                if (Number.isNaN(num)) return mismatchMessage;
-                return num === messageCount;
+                // Strict validation: only digits, exactly matching messageCount
+                if (!/^\d+$/.test(value)) return mismatchMessage;
+                return value === String(messageCount);
             },
             errorMessage: mismatchMessage
         });
 
         if (inputResult === null) {
             // User cancelled
+            logger.log("MODAL", "user cancelled count verification");
             return;
         }
 
         // User entered correct number - delete the conversation
+        logger.log("MODAL", "count verification passed, deleting conversation");
         this.deleteConversation(conversationId);
     },
 
@@ -507,54 +527,36 @@ const sidebar = {
         }
     },
 
-    createConversationElement(conversation, active) {
-        const item = document.createElement("div");
-        item.className = "conversation-item";
-
-        if (active) {
-            item.classList.add("active");
-        }
-
-        item.dataset.conversationId = conversation.id;
-
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "conversation-button";
-        button.textContent = conversation.title || "Nueva conversación";
-        button.title = conversation.title || "Nueva conversación";
-
-        button.addEventListener("click", () => {
-            this.selectConversation(conversation.id);
-        });
-
-        // Delete hint element
-        const deleteHint = document.createElement("div");
-        deleteHint.className = "conversation-delete-hint";
-        deleteHint.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-            <span data-i18n="delete-chat_ask">${lang.t("delete-chat_ask")}</span>
-        `;
-        item.appendChild(deleteHint);
-
-        item.appendChild(button);
-
-        // Bind drag events for swipe-to-delete
-        this.bindDragEvents(item, conversation);
-
-        return item;
-    },
-
     createConversation() {
         const conversation =
             this.chatManager.createConversation();
+
+        logger.log("CHAT", `created conversation ${conversation.id}`);
+        this.render();
+
+        this.dispatchConversationChanged(conversation);
+
+        this.focusInput();
+    },
+
+    async selectConversation(conversationId) {
+        logger.log("CLICK", `clicked conversation ${conversationId}`);
+        const conversation =
+            await this.chatManager.selectConversation(conversationId);
+
+        if (!conversation) {
+            return;
+        }
 
         this.render();
 
         this.dispatchConversationChanged(conversation);
 
         this.focusInput();
+
+        if (this.isMobile() && !this.isHidden) {
+            this.hide();
+        }
     },
 
     /* =========================================================

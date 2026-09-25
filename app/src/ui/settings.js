@@ -1,3 +1,5 @@
+import { logger } from "../core/log.js";
+
 const settings = {
     lang: null,
     modelManager: null,
@@ -13,6 +15,7 @@ const settings = {
     versionElement: null,
 
     initialize({ lang, modelManager, chatManager, sidebar }) {
+        logger.log("INIT", "settings initializing");
         this.lang = lang;
         this.modelManager = modelManager;
         this.chatManager = chatManager;
@@ -40,16 +43,19 @@ const settings = {
         this.updateThemeSelection();
         this.updateLanguageSelection();
         this.updateModelSelection();
+        logger.log("INIT", "settings initialized");
     },
 
     bindEvents() {
         this.closeButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Close Settings"');
             this.hide();
         });
 
         // Close on click outside (overlay)
         this.drawer.addEventListener("click", (event) => {
             if (event.target === this.drawer) {
+                logger.log("CLICK", 'clicked settings overlay');
                 this.hide();
             }
         });
@@ -57,22 +63,26 @@ const settings = {
         // Theme options
         this.themeOptions?.forEach((option) => {
             option.addEventListener("click", () => {
+                logger.log("CLICK", `clicked theme option ${option.dataset.theme}`);
                 this.setTheme(option.dataset.theme);
             });
         });
 
         // Language select
         this.languageSelect?.addEventListener("change", () => {
+            logger.log("CLICK", `changed language to ${this.languageSelect.value}`);
             this.setLanguage(this.languageSelect.value);
         });
 
         // Model select
         this.modelSelect?.addEventListener("change", () => {
+            logger.log("CLICK", `changed model to ${this.modelSelect.value}`);
             this.setModel(this.modelSelect.value);
         });
 
         // Clear conversations
         this.clearConversationsButton?.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Clear All Conversations"');
             this.clearAllConversations();
         });
 
@@ -172,6 +182,7 @@ const settings = {
     setTheme(theme) {
         if (!["light", "dark", "auto"].includes(theme)) return;
 
+        logger.log("THEME", `changed theme to ${theme}`);
         document.documentElement.setAttribute("data-theme", theme);
         localStorage.setItem("rtg-ai:theme", theme);
 
@@ -193,6 +204,7 @@ const settings = {
     setLanguage(language) {
         if (!this.lang) return;
 
+        logger.log("LANG", `changed language to ${language}`);
         this.lang.setLanguage(language);
 
         // Update sidebar and other components
@@ -219,7 +231,7 @@ const settings = {
                 })
             );
         } catch (error) {
-            console.error("Failed to select model:", error);
+            logger.error("MODEL", "Failed to select model", error);
             this.updateModelSelection();
         }
     },
@@ -227,12 +239,17 @@ const settings = {
     clearAllConversations() {
         if (!this.chatManager) return;
 
+        logger.log("CHAT", "attempting to clear all conversations");
         const confirmed = confirm(
             this.lang?.t("confirm-clear-all", "Are you sure you want to delete all conversations? This cannot be undone.")
         );
 
-        if (!confirmed) return;
+        if (!confirmed) {
+            logger.log("CHAT", "user cancelled clear all conversations");
+            return;
+        }
 
+        logger.log("CHAT", "clearing all conversations");
         this.chatManager.clearAllConversations();
         this.hide();
     },
@@ -240,6 +257,7 @@ const settings = {
     show() {
         if (!this.drawer) return;
 
+        logger.log("SETTINGS", "opened");
         this.drawer.classList.add("open");
         this.drawer.setAttribute("aria-hidden", "false");
 
@@ -251,6 +269,7 @@ const settings = {
     hide() {
         if (!this.drawer) return;
 
+        logger.log("SETTINGS", "closed");
         this.drawer.classList.remove("open");
         this.drawer.setAttribute("aria-hidden", "true");
     },

@@ -8,6 +8,7 @@ const DEFAULT_MODELS = [
     }
 ];
 
+import { logger } from "./log.js";
 
 const modelManager = {
     models: [],
@@ -15,6 +16,7 @@ const modelManager = {
 
 
     async initialize() {
+        logger.log("INIT", "modelManager initializing");
         this.models = [...DEFAULT_MODELS];
 
         const savedModel =
@@ -29,6 +31,7 @@ const modelManager = {
             this.currentModelId =
                 this.models[0]?.id ?? null;
         }
+        logger.log("MODEL", `current model: ${this.currentModelId}`);
     },
 
 
@@ -77,6 +80,7 @@ const modelManager = {
             model.id
         );
 
+        logger.log("MODEL", `selected model ${id}`);
         return model;
     },
 

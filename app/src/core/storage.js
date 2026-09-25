@@ -1,5 +1,6 @@
 const STORAGE_PREFIX = "rtg-ai:";
 
+import { logger } from "./log.js";
 
 const storage = {
 
@@ -21,15 +22,15 @@ const storage = {
             const value = localStorage.getItem(storageKey);
 
             if (value === null) {
+                logger.debug("STORAGE", `get "${key}" -> null (fallback)`);
                 return fallback;
             }
 
-            return JSON.parse(value);
+            const parsed = JSON.parse(value);
+            logger.debug("STORAGE", `get "${key}" -> parsed`);
+            return parsed;
         } catch (error) {
-            console.error(
-                `Failed to read storage key "${key}":`,
-                error
-            );
+            logger.error("STORAGE", `Failed to read storage key "${key}"`, error);
 
             return fallback;
         }
@@ -45,12 +46,10 @@ const storage = {
                 JSON.stringify(value)
             );
 
+            logger.debug("STORAGE", `set "${key}"`);
             return true;
         } catch (error) {
-            console.error(
-                `Failed to save storage key "${key}":`,
-                error
-            );
+            logger.error("STORAGE", `Failed to save storage key "${key}"`, error);
 
             return false;
         }
@@ -63,12 +62,10 @@ const storage = {
         try {
             localStorage.removeItem(storageKey);
 
+            logger.debug("STORAGE", `remove "${key}"`);
             return true;
         } catch (error) {
-            console.error(
-                `Failed to remove storage key "${key}":`,
-                error
-            );
+            logger.error("STORAGE", `Failed to remove storage key "${key}"`, error);
 
             return false;
         }
@@ -93,12 +90,10 @@ const storage = {
                 localStorage.removeItem(key);
             }
 
+            logger.log("STORAGE", `cleared ${keys.length} keys`);
             return true;
         } catch (error) {
-            console.error(
-                "Failed to clear RtG-AI storage:",
-                error
-            );
+            logger.error("STORAGE", "Failed to clear RtG-AI storage", error);
 
             return false;
         }

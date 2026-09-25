@@ -1,4 +1,5 @@
 import { storage } from "./storage.js";
+import { logger } from "./log.js";
 
 const STORAGE_KEY = "rtg-ai:conversations";
 const CURRENT_KEY = "rtg-ai:current-conversation";
@@ -8,6 +9,7 @@ const chatManager = {
     currentConversationId: null,
 
     async initialize() {
+        logger.log("INIT", "chatManager initializing");
         await storage.initialize();
         await this.loadConversations();
     },
@@ -28,8 +30,9 @@ const chatManager = {
             } else if (this.conversations.length === 0) {
                 this.createConversation();
             }
+            logger.log("STORAGE", `loaded ${this.conversations.length} conversations`);
         } catch (error) {
-            console.error("Failed to load conversations:", error);
+            logger.error("STORAGE", "Failed to load conversations", error);
             this.conversations = [];
             this.currentConversationId = null;
             this.createConversation();
@@ -86,6 +89,7 @@ const chatManager = {
         this.saveCurrent();
         this.notifyUpdate();
 
+        logger.log("CHAT", `created conversation ${conversation.id}`);
         return conversation;
     },
 
@@ -102,6 +106,7 @@ const chatManager = {
         await this.saveCurrent();
         this.notifyUpdate();
 
+        logger.log("CHAT", `selected conversation ${conversationId}`);
         return conversation;
     },
 
@@ -147,6 +152,7 @@ const chatManager = {
 
     saveAll() {
         storage.set(STORAGE_KEY, this.conversations);
+        logger.log("STORAGE", "saved conversations");
     },
 
     saveCurrent() {
@@ -179,6 +185,7 @@ const chatManager = {
         this.saveAll();
         this.notifyUpdate();
 
+        logger.log("CHAT", `deleted conversation ${conversationId}`);
         return true;
     }
 };

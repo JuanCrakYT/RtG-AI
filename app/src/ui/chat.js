@@ -1,4 +1,5 @@
 import { createMessageElement } from "./message.js";
+import { logger } from "../core/log.js";
 
 const chat = {
     chatManager: null,
@@ -6,6 +7,7 @@ const chat = {
     container: null,
 
     initialize({ chatManager, feedbackUI }) {
+        logger.log("INIT", "chat initializing");
         this.chatManager = chatManager;
         this.feedbackUI = feedbackUI;
         this.container = document.querySelector("#chat-messages");
@@ -19,6 +21,7 @@ const chat = {
         document.addEventListener("rtg-ai:conversation-changed", () => {
             this.render();
         });
+        logger.log("INIT", "chat initialized");
     },
 
     render() {
@@ -58,6 +61,7 @@ const chat = {
     },
 
     addMessage(message) {
+        logger.debug("CHAT", `added message ${message.id}`);
         return this.renderMessage(message);
     },
 

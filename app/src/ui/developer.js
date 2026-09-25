@@ -1,8 +1,11 @@
+import { logger } from "../core/log.js";
+
 const developer = {
     drawer: null,
     closeButton: null,
 
     initialize({}) {
+        logger.log("INIT", "developer initializing");
         this.drawer = document.querySelector("#developer-drawer");
         this.closeButton = document.querySelector("#close-developer-button");
 
@@ -15,16 +18,19 @@ const developer = {
         }
 
         this.bindEvents();
+        logger.log("INIT", "developer initialized");
     },
 
     bindEvents() {
         this.closeButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Close Developer"');
             this.hide();
         });
 
         // Close on click outside (overlay)
         this.drawer.addEventListener("click", (event) => {
             if (event.target === this.drawer) {
+                logger.log("CLICK", 'clicked developer overlay');
                 this.hide();
             }
         });
@@ -40,6 +46,7 @@ const developer = {
     show() {
         if (!this.drawer) return;
 
+        logger.log("DEVELOPER", "opened");
         this.drawer.classList.add("open");
         this.drawer.setAttribute("aria-hidden", "false");
 
@@ -51,6 +58,7 @@ const developer = {
     hide() {
         if (!this.drawer) return;
 
+        logger.log("DEVELOPER", "closed");
         this.drawer.classList.remove("open");
         this.drawer.setAttribute("aria-hidden", "true");
     },

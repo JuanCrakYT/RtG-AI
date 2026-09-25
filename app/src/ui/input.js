@@ -1,3 +1,5 @@
+import { logger } from "../core/log.js";
+
 const input = {
     ai: null,
     chatManager: null,
@@ -9,6 +11,7 @@ const input = {
     sendButton: null,
 
     initialize({ ai, chatManager, modelManager, chat, preview }) {
+        logger.log("INIT", "input initializing");
         this.ai = ai;
         this.chatManager = chatManager;
         this.modelManager = modelManager;
@@ -29,6 +32,7 @@ const input = {
         this.bindEvents();
         this.updateSendButton();
         this.handleAutoResize();
+        logger.log("INIT", "input initialized");
     },
 
     bindEvents() {
@@ -49,6 +53,7 @@ const input = {
         });
 
         this.sendButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Send"');
             this.send();
         });
     },
@@ -61,14 +66,14 @@ const input = {
         const conversation = this.chatManager.getCurrentConversation();
 
         if (!conversation) {
-            console.error("No active conversation.");
+            logger.error("INPUT", "No active conversation");
             return;
         }
 
         const model = this.modelManager.getCurrent();
 
         if (!model) {
-            console.error("No AI model selected.");
+            logger.error("INPUT", "No AI model selected");
             return;
         }
 
@@ -90,6 +95,7 @@ const input = {
         // Hide quick prompts when first message is sent
         this.hideQuickPrompts();
 
+        logger.log("INPUT", `sending message to model ${model.id ?? "unknown"}`);
         try {
             const messages = this.chatManager.getMessages(
                 conversation.id
@@ -114,7 +120,7 @@ const input = {
                 this.preview.render(result.build);
             }
         } catch (error) {
-            console.error("AI generation failed:", error);
+            logger.error("INPUT", "AI generation failed", error);
 
             const errorMessage = {
                 id: crypto.randomUUID(),

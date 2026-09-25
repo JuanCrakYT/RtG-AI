@@ -1,9 +1,12 @@
+import { logger } from "../core/log.js";
+
 const modelSelector = {
     modelManager: null,
     selectElement: null,
     headerContainer: null,
 
     initialize({ modelManager }) {
+        logger.log("INIT", "modelSelector initializing");
         this.modelManager = modelManager;
         this.headerContainer = document.querySelector("#header-model-selector");
 
@@ -13,6 +16,7 @@ const modelSelector = {
 
         this.render();
         this.bindEvents();
+        logger.log("INIT", "modelSelector initialized");
     },
 
     render() {
@@ -36,12 +40,14 @@ const modelSelector = {
         if (!this.selectElement) return;
 
         this.selectElement.addEventListener("change", async () => {
+            logger.log("CLICK", `changed model to ${this.selectElement.value}`);
             await this.select(this.selectElement.value);
         });
     },
 
     async select(modelId) {
         try {
+            logger.log("MODEL", `selecting model ${modelId}`);
             const model = await this.modelManager.select(modelId);
 
             if (this.selectElement) {
@@ -59,7 +65,7 @@ const modelSelector = {
 
             document.dispatchEvent(conversationEvent);
         } catch (error) {
-            console.error("Failed to select AI model:", error);
+            logger.error("MODEL", "Failed to select AI model", error);
 
             this.render();
         }

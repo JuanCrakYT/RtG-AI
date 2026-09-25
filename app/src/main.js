@@ -3,6 +3,7 @@ import { chatManager } from "./core/chatManager.js";
 import { feedback } from "./core/feedback.js";
 import { modelManager } from "./core/modelManager.js";
 import { storage } from "./core/storage.js";
+import { logger } from "./core/log.js";
 
 import { chat } from "./ui/chat.js";
 import { developer } from "./ui/developer.js";
@@ -25,7 +26,7 @@ import { suggested } from "./ui/suggested.js";
  */
 
 async function initialize() {
-    console.log("RtG-AI starting...");
+    logger.log("INIT", "RtG-AI starting...");
 
     await storage.initialize();
     await modelManager.initialize();
@@ -87,11 +88,13 @@ async function initialize() {
 
     if (viewJsonButton && jsonDrawer && closeJsonButton) {
         viewJsonButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "View JSON"');
             jsonDrawer.classList.add("open");
             jsonDrawer.setAttribute("aria-hidden", "false");
         });
 
         closeJsonButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Close JSON"');
             jsonDrawer.classList.remove("open");
             jsonDrawer.setAttribute("aria-hidden", "true");
         });
@@ -101,6 +104,7 @@ async function initialize() {
     const viewPreviewButton = document.querySelector("#view-preview-button");
     if (viewPreviewButton) {
         viewPreviewButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "View Preview"');
             preview.show();
         });
     }
@@ -112,10 +116,12 @@ async function initialize() {
 
     if (settingsButton && settingsDrawer && closeSettingsButton) {
         settingsButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Settings"');
             settings.show();
         });
 
         closeSettingsButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Close Settings"');
             settings.hide();
         });
 
@@ -134,10 +140,12 @@ async function initialize() {
 
     if (developerButton && developerDrawer && closeDeveloperButton) {
         developerButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Developer"');
             developer.show();
         });
 
         closeDeveloperButton.addEventListener("click", () => {
+            logger.log("CLICK", 'clicked button "Close Developer"');
             developer.hide();
         });
 
@@ -169,7 +177,7 @@ async function initialize() {
         }
     });
 
-    console.log("RtG-AI ready.");
+    logger.log("INIT", "RtG-AI ready.");
 }
 
 
@@ -178,7 +186,7 @@ async function initialize() {
  */
 
 initialize().catch((error) => {
-    console.error("Failed to initialize RtG-AI:", error);
+    logger.error("INIT", "Failed to initialize RtG-AI", error);
 
     document.body.classList.add("app-error");
 });

@@ -1,4 +1,5 @@
 import { modelManager } from "./modelManager.js";
+import { logger } from "./log.js";
 
 
 /**
@@ -33,6 +34,8 @@ const ai = {
             );
         }
 
+        logger.log("AI", `generation started with model ${selectedModel.id ?? "unknown"}`);
+
         /*
          * Temporary mock response.
          *
@@ -40,10 +43,17 @@ const ai = {
          * be replaced by the native runtime without changing
          * the public ai.generate() interface.
          */
-        return this.mockGenerate({
-            model: selectedModel,
-            messages
-        });
+        try {
+            const result = await this.mockGenerate({
+                model: selectedModel,
+                messages
+            });
+            logger.log("AI", "generation completed");
+            return result;
+        } catch (error) {
+            logger.error("AI", "generation failed", error);
+            throw error;
+        }
     },
 
 
