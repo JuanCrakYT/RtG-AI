@@ -14,6 +14,7 @@ const modal = {
     boundKeyDown: null,
     boundFocusTrap: null,
     _initialized: false,
+    _focusRafId: null,
 
     initialize() {
         if (this._initialized) {
@@ -76,7 +77,7 @@ const modal = {
             // Focus management: NO autofocus in HTML, only JS after DOM insertion
             const focusTarget = modalElement.querySelector("button, input, select, textarea, [tabindex]:not([tabindex='-1'])");
             // Use requestAnimationFrame to ensure modal is rendered before focusing
-            requestAnimationFrame(() => {
+            this._focusRafId = requestAnimationFrame(() => {
                 focusTarget?.focus();
             });
 
@@ -85,7 +86,8 @@ const modal = {
                 resolve,
                 onClose: options.onClose,
                 handleConfirm,
-                handleCancel
+                handleCancel,
+                focusRafId: this._focusRafId
             };
 
             if (options.onShow) {
@@ -96,6 +98,14 @@ const modal = {
 
     close(result = null) {
         if (!this.currentModal) return;
+
+        // Cancel any pending focus rAF from this modal
+        if (this.currentModal.focusRafId) {
+            cancelAnimationFrame(this.currentModal.focusRafId);
+        }
+        if (this._focusRafId) {
+            cancelAnimationFrame(this._focusRafId);
+        }
 
         const { element, resolve, onClose, handleConfirm, handleCancel } = this.currentModal;
 
@@ -143,14 +153,6 @@ const modal = {
 
         if (event.key === "Tab") {
             this.trapFocus(event);
-        }
-
-        if (event.key === "Enter" && event.target.matches("input[type='text'], input[type='number']")) {
-            const confirmButton = this.currentModal.element.querySelector("[data-modal-confirm]");
-            if (confirmButton && !event.shiftKey) {
-                event.preventDefault();
-                confirmButton.click();
-            }
         }
     },
 
@@ -290,13 +292,7 @@ const modal = {
                     }
                 });
 
-                // Focus input via JS (no autofocus in HTML)
-                requestAnimationFrame(() => {
-                    input.focus();
-                });
-
-                // Do NOT run checkInput() initially - let input start empty
-                // with button disabled and no error shown. Validation runs on first input.
+                // Focus is handled by show() via its rAF - no duplicate rAF here
             }
         }).then((result) => {
             // Capture input value BEFORE close() clears currentModal
