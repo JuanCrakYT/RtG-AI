@@ -19,10 +19,19 @@ JSON_DIR = DEV_DIR / "json"
 TOKENS_PATH = DEV_DIR / "tokens.json"
 UNKNOWN_PATH = DEV_DIR / "unknown-properties.json"
 ROOT_DIR = DEV_DIR.parent.parent.parent
-DATA_LANG_PATH = ROOT_DIR / "RtG Language" / "data.json"
-EXTRACTOR_REL_PATH = Path(__file__).resolve().relative_to(ROOT_DIR).as_posix()
 UUID_PATTERN = re.compile(r'^\{?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}?$')
+NUMERIC_ID_PATTERN = re.compile(r'^\d+$')
+TEMPLATE_PLACEHOLDER_PATTERN = re.compile(r'^\{\d+\}$')
 
+
+def is_opaque_key(key):
+    """True si la clave es un identificador transparente (UUID, ID numérico
+    puro, o placeholder tipo {0}) y no un nombre de propiedad real."""
+    return bool(
+        UUID_PATTERN.match(key)
+        or NUMERIC_ID_PATTERN.match(key)
+        or TEMPLATE_PLACEHOLDER_PATTERN.match(key)
+    )
 
 def load_json(path, default):
     if not path.exists():
@@ -99,6 +108,15 @@ def ensure_structure(unknown_data):
     unknown_data.setdefault("Objects", {})
     unknown_data["Objects"].setdefault("Auto", [])
 
+def remove_property_from_tokens(tokens_data, prop_name):
+    """Elimina una propiedad de cualquier categoría de tokens.json donde viva.
+    Devuelve True si se encontró y eliminó, False si no estaba."""
+    names = tokens_data[0]["Names"]
+    for prop_list in names["Properties"].values():
+        if prop_name in prop_list:
+            prop_list.remove(prop_name)
+            return True
+    return False
 
 def promote_auto(tokens_data, unknown_data):
     """Mueve todo lo que está en Auto (propiedades y objetos) a tokens.json,
@@ -200,7 +218,7 @@ def walk_container(value, known_properties, unknown_data, observed_properties):
     count = 0
     if isinstance(value, dict):
         for key, sub_value in value.items():
-            if is_uuid_like(key):
+            if is_opaque_key(key):
                 count += walk_container(sub_value, known_properties, unknown_data, observed_properties)
             else:
                 count += _note_property(key, sub_value, known_properties, unknown_data, observed_properties)
@@ -212,120 +230,19 @@ def walk_container(value, known_properties, unknown_data, observed_properties):
                 count += walk_container(item, known_properties, unknown_data, observed_properties)
     return count
 
-def _find_first_object_bounds(content):
-    depth = 0
-    obj_start = -1
-    obj_end = -1
-    in_string = False
-    escape = False
-
-    for i, ch in enumerate(content):
-        if escape:
-            escape = False
-            continue
-        if ch == '\\':
-            escape = True
-            continue
-        if ch == '"':
-            in_string = not in_string
-            continue
-        if in_string:
-            continue
-        if ch == '[' and depth == 0 and obj_start == -1:
-            j = i + 1
-            while j < len(content) and content[j] in ' \t\n\r':
-                j += 1
-            if j < len(content) and content[j] == '{':
-                obj_start = j
-        elif obj_start != -1:
-            if ch == '{':
-                depth += 1
-            elif ch == '}':
-                depth -= 1
-                if depth == 0:
-                    obj_end = i + 1
-                    break
-
-    return obj_start, obj_end
-
-
-def _find_last_key_close(content, obj_start, obj_end):
-    depth = 0
-    last_key_close = -1
-    in_string = False
-    escape = False
-
-    for i in range(obj_start, obj_end):
-        ch = content[i]
-        if escape:
-            escape = False
-            continue
-        if ch == '\\':
-            escape = True
-            continue
-        if ch == '"':
-            in_string = not in_string
-            continue
-        if in_string:
-            continue
-        if ch == '{':
-            depth += 1
-        elif ch == '}':
-            depth -= 1
-            if depth == 1:
-                last_key_close = i
-
-    return last_key_close
-
-
-def register_data_lang_source(tokens_data):
-    """Synchronize RtG-Language/data.json with the maintained token metadata.
-
-    The mirror receives the normal extractor provenance but retains its readable
-    formatting when only the Source entry needs to be added.
-    """
-    DATA_LANG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    content = DATA_LANG_PATH.read_text(encoding="utf-8") if DATA_LANG_PATH.exists() else "[\n]\n"
-    data = load_json(DATA_LANG_PATH, [])
-    if not isinstance(data, list):
-        data = [{}]
-    if not data or not isinstance(data[0], dict):
-        data.insert(0, {})
-
-    entry = data[0]
-    entry_without_source = {k: v for k, v in entry.items() if k != "Source"}
-    data_matches = entry_without_source == tokens_data[0]
-    has_source = entry.get("Source") == EXTRACTOR_REL_PATH
-
-    if data_matches and has_source:
+def note_local_types(obj_type, connections, local_types_map):
+    """Registra, por tipo de objeto, el conjunto de LocalType (string) que
+    aparecen en sus conexiones. Entradas malformadas se ignoran en vez de
+    romper el escaneo."""
+    if not isinstance(connections, list):
         return
-
-    obj_start, obj_end = _find_first_object_bounds(content)
-    if obj_start == -1 or obj_end == -1:
-        new_entry = json.loads(json.dumps(tokens_data[0]))
-        new_entry["Source"] = EXTRACTOR_REL_PATH
-        DATA_LANG_PATH.write_text(dump_pretty([new_entry]) + "\n", encoding="utf-8")
-        return
-
-    if data_matches:
-        last_key_close = _find_last_key_close(content, obj_start, obj_end)
-        if last_key_close == -1:
-            return
-        line_start = content.rfind('\n', 0, last_key_close) + 1
-        key_indent = content[line_start:last_key_close]
-        between = content[last_key_close + 1:obj_end]
-        source_text = ',\n' + key_indent + json.dumps("Source", ensure_ascii=False) + ': ' + json.dumps(EXTRACTOR_REL_PATH, ensure_ascii=False)
-        new_content = content[:last_key_close + 1] + source_text + between + content[obj_end:]
-    else:
-        new_entry = json.loads(json.dumps(tokens_data[0]))
-        new_entry["Source"] = EXTRACTOR_REL_PATH
-        formatted = dump_pretty([new_entry])
-        formatted_lines = formatted.split('\n')
-        first_obj_text = '\n'.join(formatted_lines[1:-1])
-        new_content = content[:obj_start] + first_obj_text.lstrip() + content[obj_end:]
-
-    DATA_LANG_PATH.write_text(new_content, encoding="utf-8")
-
+    for entry in connections:
+        if not isinstance(entry, list) or len(entry) != 3:
+            continue
+        local_type = entry[0]
+        if not isinstance(local_type, str):
+            continue
+        local_types_map.setdefault(obj_type, set()).add(local_type)
 
 def run(report=None, should_stop=None, ask=None):
     tokens_data = load_json(TOKENS_PATH, [{"Names": {"Objects": [], "Properties": {}}}])
@@ -334,6 +251,7 @@ def run(report=None, should_stop=None, ask=None):
 
     known_objects, known_properties = get_known_sets(tokens_data)
     known_unknown_objects = set(unknown_data["Objects"]["Auto"])
+    local_types_map = {}
     observed_properties = set()
 
     new_objects, new_properties = 0, 0
@@ -350,14 +268,12 @@ def run(report=None, should_stop=None, ask=None):
         data = load_json(path, None)
         if data is None:
             continue
-        for obj_type, _connections, properties in find_object_tuples(data):
+        for obj_type, connections, properties in find_object_tuples(data):
+            note_local_types(obj_type, connections, local_types_map)
             if obj_type not in known_objects and obj_type not in known_unknown_objects:
                 unknown_data["Objects"]["Auto"].append(obj_type)
                 known_unknown_objects.add(obj_type)
                 new_objects += 1
-
-            for prop_name, value in properties.items():
-                new_properties += _note_property(prop_name, value, known_properties, unknown_data, observed_properties)
 
             for prop_name, value in properties.items():
                 new_properties += _note_property(prop_name, value, known_properties, unknown_data, observed_properties)
@@ -375,34 +291,41 @@ def run(report=None, should_stop=None, ask=None):
     promoted_props, promoted_objects = promote_auto(tokens_data, unknown_data)
 
     if ask:
-        for category in list(unknown_data["Properties"]["Human"].keys()):
-            for prop_name in list(unknown_data["Properties"]["Human"][category]):
-                if should_stop and should_stop():
-                    break
-                choice = ask(
-                    f"'{prop_name}' es ambiguo (detectado como {category}). ¿A qué tipo pertenece?",
-                    ["Integer", "Number", "Boolean", "String", "Array", "Object", "Postponer"]
-                )
-                if choice and choice != "Postponer":
-                    names = tokens_data[0]["Names"]
-                    names["Properties"].setdefault(choice, [])
-                    if prop_name not in names["Properties"][choice]:
-                        names["Properties"][choice].append(prop_name)
-                    unknown_data["Properties"]["Human"][category].remove(prop_name)
-
         _, known_properties_now = get_known_sets(tokens_data)
         unused = sorted(known_properties_now - observed_properties)
         if unused:
-            ask(f"Estas propiedades están en tokens.json pero no aparecen en ningún ejemplo real de dev/json: "
-                f"{', '.join(unused)}", ["OK"])
+            choice = ask(
+                f"Estas propiedades están en tokens.json pero no aparecen en ningún ejemplo real de dev/json: "
+                f"{', '.join(unused)}",
+                ["OK", "Eliminar todas", "Eliminar excepto"]
+            )
+
+            if choice == "Eliminar todas":
+                for prop_name in unused:
+                    remove_property_from_tokens(tokens_data, prop_name)
+
+            elif choice == "Eliminar excepto":
+                for prop_name in unused:
+                    if should_stop and should_stop():
+                        break
+                    decision = ask(
+                        f"'{prop_name}' no aparece en ningún ejemplo real de dev/json. ¿Qué hacer con ella?",
+                        ["Eliminar", "Conservar"]
+                    )
+                    if decision == "Eliminar":
+                        remove_property_from_tokens(tokens_data, prop_name)
+                    # "Conservar", None (cancelado) o stop pedido -> se deja tal cual
+
+    tokens_data[0]["LocalType"] = {
+        obj_type: sorted(values)
+        for obj_type, values in sorted(local_types_map.items())
+    }
 
     with open(TOKENS_PATH, "w", encoding="utf-8") as f:
         f.write(dump_pretty(tokens_data))
 
     with open(UNKNOWN_PATH, "w", encoding="utf-8") as f:
         json.dump(unknown_data, f, indent=2, ensure_ascii=False)
-
-    register_data_lang_source(tokens_data)
 
     msg = (f"Objetos nuevos: {new_objects} | Propiedades nuevas: {new_properties} | "
            f"Promovidos: objetos {promoted_objects}, propiedades {promoted_props}")

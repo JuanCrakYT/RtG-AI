@@ -49,7 +49,7 @@ class Stage:
         return []
 
     def run(self, context: dict, report: Callable[[float, str], None],
-            should_stop: Callable[[], bool]) -> None:
+        should_stop: Callable[[], bool], ask: Callable[[str, List[str]], Optional[str]]) -> None:
         """
         Ejecuta la etapa. Debe llamar report(percent, message) periódicamente,
         y revisar should_stop() en iteraciones largas para cancelarse limpiamente
@@ -174,7 +174,7 @@ if __name__ == "__main__":
             self.steps = steps
             self.fail = fail
 
-        def run(self, context, report, should_stop):
+        def run(self, context, report, should_stop, ask):
             for i in range(self.steps):
                 if should_stop():
                     return

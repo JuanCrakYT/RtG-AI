@@ -60,7 +60,7 @@ def build_fresh_state():
 def main():
     pygame.init()
     pygame.display.set_caption("RtG-AI // Pipeline")
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("consolas", 16)
     font_small = pygame.font.SysFont("consolas", 13)
@@ -68,8 +68,8 @@ def main():
     stages, views, order, orchestrator = build_fresh_state()
     started = False
     pending = []
-    closing = False       # True = se va a cerrar la ventana de verdad (X o ESC)
-    restart_pending = False  # True = se pidió R mientras corría; reiniciar en cuanto pare
+    closing = False
+    restart_pending = False
 
     while True:
         for event in pygame.event.get():
@@ -77,6 +77,8 @@ def main():
                 if orchestrator.is_running():
                     orchestrator.request_stop()
                 closing = True
+            elif event.type == pygame.VIDEORESIZE:
+                screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
             elif event.type == pygame.KEYDOWN:
                 if pending and pygame.K_1 <= event.key <= pygame.K_9:
                     idx = event.key - pygame.K_1
@@ -121,6 +123,8 @@ def main():
                 pending = []
                 restart_pending = False
 
+        width, height = screen.get_size()
+
         screen.fill(BG)
         title = "RtG-AI Pipeline" if started else "RtG-AI Pipeline — ESPACIO iniciar, R reiniciar, ESC salir"
         screen.blit(font.render(title, True, FG), (20, 16))
@@ -131,10 +135,11 @@ def main():
             color = STATUS_COLOR.get(v.status, MUTED)
             screen.blit(font.render(name, True, FG), (20, y))
 
-            bx, by, bw, bh = 220, y + 2, 380, 16
-            pygame.draw.rect(screen, BAR_BG, (bx, by, bw, bh))
-            pygame.draw.rect(screen, color, (bx, by, int(bw * (v.percent / 100)), bh))
-            screen.blit(font_small.render(v.status.name if v.status else "pendiente", True, color), (bx + bw + 10, y))
+            bar_w = max(120, width - 340)
+            bx, by, bh = 220, y + 2, 16
+            pygame.draw.rect(screen, BAR_BG, (bx, by, bar_w, bh))
+            pygame.draw.rect(screen, color, (bx, by, int(bar_w * (v.percent / 100)), bh))
+            screen.blit(font_small.render(v.status.name if v.status else "pendiente", True, color), (bx + bar_w + 10, y))
 
             msg = v.error if v.error else v.message
             if msg:
@@ -143,21 +148,36 @@ def main():
             y += 60
 
         if closing or restart_pending:
-            note = "Deteniendo... esperando cierre limpio"
-            screen.blit(font_small.render(note, True, MUTED), (20, HEIGHT - 30))
+            screen.blit(font_small.render("Deteniendo... esperando cierre limpio", True, MUTED), (20, height - 30))
 
         if pending:
             msg = pending[0]
-            box_x, box_y, box_w = 40, HEIGHT - 200, WIDTH - 80
+            box_x, box_w = 40, max(240, width - 80)
+            top_margin = 20
+            max_box_h = height - top_margin - 20
+
             lines = wrap_text(msg.text, font_small, box_w - 30)
             option_lines = [f"{i + 1}) {opt}" for i, opt in enumerate(msg.options)]
-            box_h = 30 + len(lines) * 20 + len(option_lines) * 20 + 15
+
+            # Cuánto entra en el alto máximo disponible, dejando espacio para las opciones
+            fixed_h = 30 + len(option_lines) * 20 + 15
+            max_text_lines = max(1, (max_box_h - fixed_h) // 20)
+
+            truncated = len(lines) > max_text_lines
+            if truncated:
+                shown_lines = lines[:max(0, max_text_lines - 1)]
+                shown_lines.append(f"... (+{len(lines) - len(shown_lines)} líneas más)")
+            else:
+                shown_lines = lines
+
+            box_h = min(max_box_h, 30 + len(shown_lines) * 20 + len(option_lines) * 20 + 15)
+            box_y = max(top_margin, height - box_h - 20)
 
             pygame.draw.rect(screen, BOX_BG, (box_x, box_y, box_w, box_h))
             pygame.draw.rect(screen, BOX_BORDER, (box_x, box_y, box_w, box_h), width=2)
 
             ty = box_y + 12
-            for line in lines:
+            for line in shown_lines:
                 screen.blit(font_small.render(line, True, FG), (box_x + 15, ty))
                 ty += 20
             ty += 8
@@ -167,7 +187,6 @@ def main():
 
         pygame.display.flip()
         clock.tick(30)
-
 
 if __name__ == "__main__":
     main()
