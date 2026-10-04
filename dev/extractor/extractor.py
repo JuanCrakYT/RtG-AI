@@ -8,6 +8,10 @@ Reglas clave:
 - Nunca clasifica automáticamente como "Integer" (regla semántica del proyecto).
 - Números decimales van a Human.Number para revisión manual, nunca se asumen.
 - No sobreescribe clasificaciones ya hechas a mano en corridas anteriores.
+- LocalType: por cada tipo de objeto, qué TipoLocal usa él mismo en sus conexiones.
+- LocalIDs: por cada tipo de objeto, qué PuntoPadre (numéricos) se observó que
+  otros objetos usan para conectarse A ÉL (resuelto vía ÍndicePadre, no por el
+  tipo del objeto que declara la conexión).
 """
 
 import json
@@ -18,7 +22,7 @@ DEV_DIR = Path(__file__).resolve().parent.parent
 JSON_DIR = DEV_DIR / "json"
 TOKENS_PATH = DEV_DIR / "tokens.json"
 UNKNOWN_PATH = DEV_DIR / "unknown-properties.json"
-ROOT_DIR = DEV_DIR.parent.parent.parent
+
 UUID_PATTERN = re.compile(r'^\{?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}?$')
 NUMERIC_ID_PATTERN = re.compile(r'^\d+$')
 TEMPLATE_PLACEHOLDER_PATTERN = re.compile(r'^\{\d+\}$')
@@ -32,6 +36,7 @@ def is_opaque_key(key):
         or NUMERIC_ID_PATTERN.match(key)
         or TEMPLATE_PLACEHOLDER_PATTERN.match(key)
     )
+
 
 def load_json(path, default):
     if not path.exists():
@@ -83,13 +88,11 @@ def classify_value(value):
 
 
 def find_object_tuples(node):
-    """Busca recursivamente tuplas [Type:str, Connections:list, Properties:dict]
-    en cualquier parte del JSON, sin asumir una estructura rígida de nivel superior."""
     found = []
     if isinstance(node, list):
         if (len(node) == 3 and isinstance(node[0], str)
-                and isinstance(node[1], list) and isinstance(node[2], dict)):
-            found.append(node)
+                and isinstance(node[1], list) and _is_properties_like(node[2])):
+            found.append([node[0], node[1], _normalize_properties(node[2])])
         for item in node:
             found.extend(find_object_tuples(item))
     elif isinstance(node, dict):
@@ -108,6 +111,7 @@ def ensure_structure(unknown_data):
     unknown_data.setdefault("Objects", {})
     unknown_data["Objects"].setdefault("Auto", [])
 
+
 def remove_property_from_tokens(tokens_data, prop_name):
     """Elimina una propiedad de cualquier categoría de tokens.json donde viva.
     Devuelve True si se encontró y eliminó, False si no estaba."""
@@ -117,6 +121,7 @@ def remove_property_from_tokens(tokens_data, prop_name):
             prop_list.remove(prop_name)
             return True
     return False
+
 
 def promote_auto(tokens_data, unknown_data):
     """Mueve todo lo que está en Auto (propiedades y objetos) a tokens.json,
@@ -146,6 +151,11 @@ def promote_auto(tokens_data, unknown_data):
 
     return promoted_props, promoted_objects
 
+
+# ---------------------------------------------------------------------------
+# Formateo de tokens.json
+# ---------------------------------------------------------------------------
+
 def _wrap_string_list(items, indent, max_width=100):
     """Empaqueta strings en líneas de hasta max_width caracteres, en vez de una por línea."""
     lines, current, current_len = [], [], indent
@@ -163,6 +173,29 @@ def _wrap_string_list(items, indent, max_width=100):
     return lines
 
 
+def _format_compact_array(items):
+    """Arreglo de strings en una sola línea: ["3", "6"]"""
+    return "[" + ", ".join(json.dumps(v, ensure_ascii=False) for v in items) + "]"
+
+
+def _format_compact_dict_of_arrays(d, indent):
+    """Formatea un diccionario {objeto: [ids]} con cada objeto en una sola
+    línea. Usado para LocalType y LocalIDs."""
+    pad = " " * indent
+    closing_pad = " " * (indent - 2)
+    if not d:
+        return "{}"
+    entries = []
+    keys = list(d.keys())
+    for i, key in enumerate(keys):
+        comma = "," if i < len(keys) - 1 else ""
+        entries.append(f'{pad}{json.dumps(key, ensure_ascii=False)}: {_format_compact_array(d[key])}{comma}')
+    return "{\n" + "\n".join(entries) + "\n" + closing_pad + "}"
+
+
+COMPACT_DICT_KEYS = ("LocalType", "LocalIDs")
+
+
 def _format_value(value, indent):
     pad = " " * indent
     closing_pad = " " * (indent - 2)
@@ -174,8 +207,8 @@ def _format_value(value, indent):
         keys = list(value.keys())
         for i, key in enumerate(keys):
             comma = "," if i < len(keys) - 1 else ""
-            if key == "LocalType" and isinstance(value[key], dict):
-                formatted_value = _format_local_type(value[key], indent + 2)
+            if key in COMPACT_DICT_KEYS and isinstance(value[key], dict):
+                formatted_value = _format_compact_dict_of_arrays(value[key], indent + 2)
             else:
                 formatted_value = _format_value(value[key], indent + 2)
             entries.append(f'{pad}{json.dumps(key, ensure_ascii=False)}: {formatted_value}{comma}')
@@ -192,26 +225,14 @@ def _format_value(value, indent):
 
     return json.dumps(value, ensure_ascii=False)
 
-def _format_compact_array(items):
-    """Arreglo de strings en una sola línea: ["3", "6"]"""
-    return "[" + ", ".join(json.dumps(v, ensure_ascii=False) for v in items) + "]"
-
-
-def _format_local_type(local_type_dict, indent):
-    """Formatea LocalType con cada objeto en una sola línea: "Base": ["3"]."""
-    pad = " " * indent
-    closing_pad = " " * (indent - 2)
-    if not local_type_dict:
-        return "{}"
-    entries = []
-    keys = list(local_type_dict.keys())
-    for i, key in enumerate(keys):
-        comma = "," if i < len(keys) - 1 else ""
-        entries.append(f'{pad}{json.dumps(key, ensure_ascii=False)}: {_format_compact_array(local_type_dict[key])}{comma}')
-    return "{\n" + "\n".join(entries) + "\n" + closing_pad + "}"
 
 def dump_pretty(data):
     return _format_value(data, indent=2)
+
+
+# ---------------------------------------------------------------------------
+# Detección de propiedades/objetos nuevos
+# ---------------------------------------------------------------------------
 
 def _note_property(prop_name, value, known_properties, unknown_data, observed_properties):
     """Registra una propiedad vista (sea de nivel superior o anidada en
@@ -227,14 +248,10 @@ def _note_property(prop_name, value, known_properties, unknown_data, observed_pr
     return 1
 
 
-def is_uuid_like(key):
-    return bool(UUID_PATTERN.match(key))
-
-
 def walk_container(value, known_properties, unknown_data, observed_properties):
     """Recorre recursivamente un valor tipo dict/list buscando propiedades
-    anidadas. Claves con forma de UUID se tratan como identificadores
-    transparentes (se atraviesan sin registrarse como propiedad)."""
+    anidadas. Claves opacas (UUID, ID numérico, placeholder {N}) se tratan
+    como identificadores transparentes, nunca como nombre de propiedad."""
     count = 0
     if isinstance(value, dict):
         for key, sub_value in value.items():
@@ -250,10 +267,15 @@ def walk_container(value, known_properties, unknown_data, observed_properties):
                 count += walk_container(item, known_properties, unknown_data, observed_properties)
     return count
 
+
+# ---------------------------------------------------------------------------
+# LocalType / LocalIDs
+# ---------------------------------------------------------------------------
+
 def note_local_types(obj_type, connections, local_types_map):
     """Registra, por tipo de objeto, el conjunto de LocalType (string) que
-    aparecen en sus conexiones. Entradas malformadas se ignoran en vez de
-    romper el escaneo."""
+    ese objeto usa en sus propias conexiones. Entradas malformadas se
+    ignoran en vez de romper el escaneo."""
     if not isinstance(connections, list):
         return
     for entry in connections:
@@ -264,6 +286,58 @@ def note_local_types(obj_type, connections, local_types_map):
             continue
         local_types_map.setdefault(obj_type, set()).add(local_type)
 
+def _is_properties_like(value):
+    """True si value puede representar Propiedades válidas. Lua/Roblox
+    serializa una tabla vacía ambiguamente como [] en vez de {} cuando no
+    tiene claves, así que [] cuenta como Propiedades vacías."""
+    return isinstance(value, dict) or value == []
+
+
+def _normalize_properties(value):
+    """Convierte el caso ambiguo [] a un diccionario vacío real, para que
+    el resto del código siempre pueda tratarlo como dict."""
+    return {} if value == [] else value
+
+def is_object_tuple(node):
+    return (isinstance(node, list) and len(node) == 3
+            and isinstance(node[0], str) and isinstance(node[1], list)
+            and _is_properties_like(node[2]))
+
+
+def get_top_level_build(data):
+    """Devuelve el array de nivel superior de un build (lista plana de tuplas
+    [Type, Connections, Properties]) si el JSON tiene exactamente esa forma,
+    o None si no. El ÍndicePadre de las conexiones solo tiene sentido
+    relativo a este array (spec sección 7.1), por eso no se puede resolver
+    buscando tuplas en cualquier parte del JSON como hace find_object_tuples."""
+    if isinstance(data, list) and all(is_object_tuple(item) for item in data):
+        return data
+    return None
+
+
+def note_local_ids(connections, index_type_map, local_ids_map):
+    """Registra, por tipo de objeto PADRE (resuelto vía ÍndicePadre), los
+    PuntoPadre numéricos observados en conexiones que apuntan a él. Excluye
+    PuntoPadre tipo UUID (EphemeralAttachments) por no ser IDs de punto
+    reutilizables del catálogo."""
+    if not isinstance(connections, list):
+        return
+    for entry in connections:
+        if not isinstance(entry, list) or len(entry) != 3:
+            continue
+        _local_type, point_parent, parent_index = entry
+        if not isinstance(point_parent, str) or not NUMERIC_ID_PATTERN.match(point_parent):
+            continue
+        parent_type = index_type_map.get(parent_index)
+        if parent_type is None:
+            continue
+        local_ids_map.setdefault(parent_type, set()).add(point_parent)
+
+
+# ---------------------------------------------------------------------------
+# Run
+# ---------------------------------------------------------------------------
+
 def run(report=None, should_stop=None, ask=None):
     tokens_data = load_json(TOKENS_PATH, [{"Names": {"Objects": [], "Properties": {}}}])
     unknown_data = load_json(UNKNOWN_PATH, {})
@@ -272,6 +346,7 @@ def run(report=None, should_stop=None, ask=None):
     known_objects, known_properties = get_known_sets(tokens_data)
     known_unknown_objects = set(unknown_data["Objects"]["Auto"])
     local_types_map = {}
+    local_ids_map = {}
     observed_properties = set()
 
     new_objects, new_properties = 0, 0
@@ -288,8 +363,16 @@ def run(report=None, should_stop=None, ask=None):
         data = load_json(path, None)
         if data is None:
             continue
+
+        build = get_top_level_build(data)
+        if build is not None:
+            index_type_map = {idx + 1: elem[0] for idx, elem in enumerate(build)}
+            for _obj_type, connections, _properties in build:
+                note_local_ids(connections, index_type_map, local_ids_map)
+
         for obj_type, connections, properties in find_object_tuples(data):
             note_local_types(obj_type, connections, local_types_map)
+
             if obj_type not in known_objects and obj_type not in known_unknown_objects:
                 unknown_data["Objects"]["Auto"].append(obj_type)
                 known_unknown_objects.add(obj_type)
@@ -340,6 +423,10 @@ def run(report=None, should_stop=None, ask=None):
         obj_type: sorted(values)
         for obj_type, values in sorted(local_types_map.items())
     }
+    tokens_data[0]["LocalIDs"] = {
+        obj_type: sorted(values, key=int)
+        for obj_type, values in sorted(local_ids_map.items())
+    }
 
     with open(TOKENS_PATH, "w", encoding="utf-8") as f:
         f.write(dump_pretty(tokens_data))
@@ -356,6 +443,7 @@ def run(report=None, should_stop=None, ask=None):
 
 def main():
     run()
+
 
 if __name__ == "__main__":
     main()
