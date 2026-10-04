@@ -177,18 +177,39 @@ def _format_value(value, indent):
             entries.append(f'{pad}{json.dumps(key, ensure_ascii=False)}: {_format_value(value[key], indent + 2)}{comma}')
         return "{\n" + "\n".join(entries) + "\n" + closing_pad + "}"
 
-    if isinstance(value, list):
+    if isinstance(value, dict):
         if not value:
-            return "[]"
-        if all(isinstance(v, str) for v in value):
-            body = "\n".join(_wrap_string_list(value, indent))
-            return "[\n" + body + "\n" + closing_pad + "]"
-        # Respaldo para listas que no son puros strings (no ocurre hoy en tokens.json)
-        entries = [f'{pad}{_format_value(v, indent + 2)}' for v in value]
-        return "[\n" + ",\n".join(entries) + "\n" + closing_pad + "]"
+            return "{}"
+        entries = []
+        keys = list(value.keys())
+        for i, key in enumerate(keys):
+            comma = "," if i < len(keys) - 1 else ""
+            if key == "LocalType" and isinstance(value[key], dict):
+                formatted_value = _format_local_type(value[key], indent + 2)
+            else:
+                formatted_value = _format_value(value[key], indent + 2)
+            entries.append(f'{pad}{json.dumps(key, ensure_ascii=False)}: {formatted_value}{comma}')
+        return "{\n" + "\n".join(entries) + "\n" + closing_pad + "}"
 
     return json.dumps(value, ensure_ascii=False)
 
+def _format_compact_array(items):
+    """Arreglo de strings en una sola línea: ["3", "6"]"""
+    return "[" + ", ".join(json.dumps(v, ensure_ascii=False) for v in items) + "]"
+
+
+def _format_local_type(local_type_dict, indent):
+    """Formatea LocalType con cada objeto en una sola línea: "Base": ["3"]."""
+    pad = " " * indent
+    closing_pad = " " * (indent - 2)
+    if not local_type_dict:
+        return "{}"
+    entries = []
+    keys = list(local_type_dict.keys())
+    for i, key in enumerate(keys):
+        comma = "," if i < len(keys) - 1 else ""
+        entries.append(f'{pad}{json.dumps(key, ensure_ascii=False)}: {_format_compact_array(local_type_dict[key])}{comma}')
+    return "{\n" + "\n".join(entries) + "\n" + closing_pad + "}"
 
 def dump_pretty(data):
     return _format_value(data, indent=2)
