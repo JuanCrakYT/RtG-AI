@@ -279,6 +279,13 @@ def _find_last_key_close(content, obj_start, obj_end):
 
 
 def register_data_lang_source(tokens_data):
+    """Synchronize RtG-Language/data.json with the maintained token metadata.
+
+    The mirror receives the normal extractor provenance but retains its readable
+    formatting when only the Source entry needs to be added.
+    """
+    DATA_LANG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    content = DATA_LANG_PATH.read_text(encoding="utf-8") if DATA_LANG_PATH.exists() else "[\n]\n"
     data = load_json(DATA_LANG_PATH, [])
     if not isinstance(data, list):
         data = [{}]
@@ -293,11 +300,11 @@ def register_data_lang_source(tokens_data):
     if data_matches and has_source:
         return
 
-    with open(DATA_LANG_PATH, "r", encoding="utf-8") as f:
-        content = f.read()
-
     obj_start, obj_end = _find_first_object_bounds(content)
     if obj_start == -1 or obj_end == -1:
+        new_entry = json.loads(json.dumps(tokens_data[0]))
+        new_entry["Source"] = EXTRACTOR_REL_PATH
+        DATA_LANG_PATH.write_text(dump_pretty([new_entry]) + "\n", encoding="utf-8")
         return
 
     if data_matches:
@@ -317,8 +324,7 @@ def register_data_lang_source(tokens_data):
         first_obj_text = '\n'.join(formatted_lines[1:-1])
         new_content = content[:obj_start] + first_obj_text.lstrip() + content[obj_end:]
 
-    with open(DATA_LANG_PATH, "w", encoding="utf-8") as f:
-        f.write(new_content)
+    DATA_LANG_PATH.write_text(new_content, encoding="utf-8")
 
 
 def run(report=None, should_stop=None, ask=None):
