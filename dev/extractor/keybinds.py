@@ -10,19 +10,12 @@ de dev/json/**/*.json y actualiza EXCLUSIVAMENTE la sección:
 
 dentro de dev/tokens.json.
 
-La estructura del archivo sigue la organización utilizada por extractor.py:
-
-    1. Configuración
-    2. JSON
-    3. Descubrimiento
-    4. Extracción
-    5. Procesamiento
-    6. Escritura
-    7. Stage / ejecución
+El formato utilizado para la lista de keybinds es el mismo que utiliza
+extractor.py para las listas de strings.
 
 IMPORTANTE:
     Este archivo NO vuelve a serializar tokens.json completo.
-    Solo reemplaza el contenido de Characters.keybinds.
+    Solo reemplaza el contenido de la sección keybinds.
 """
 
 import json
@@ -45,16 +38,6 @@ TOKENS_PATH = DEV_DIR / "tokens.json"
 def load_json(path):
     """
     Carga un archivo JSON individual.
-
-    Parameters
-    ----------
-    path : Path
-        Archivo JSON que se desea cargar.
-
-    Returns
-    -------
-    object
-        Contenido deserializado del JSON.
     """
 
     with open(path, "r", encoding="utf-8") as f:
@@ -70,23 +53,7 @@ def find_activation_keys(node):
     Busca recursivamente propiedades llamadas exactamente
     'ActivationKey'.
 
-    El recorrido funciona sobre:
-
-        - diccionarios
-        - listas
-        - estructuras JSON anidadas
-
     Solo se consideran valores string.
-
-    Ejemplo:
-
-        {
-            "ActivationKey": "F"
-        }
-
-    produce:
-
-        ["F"]
     """
 
     found = []
@@ -120,32 +87,9 @@ def extract_keybind_characters(report=None, should_stop=None):
     """
     Escanea todos los archivos JSON dentro de dev/json/**/*.json.
 
-    De cada propiedad ActivationKey obtiene todos sus caracteres
-    individuales.
+    De cada ActivationKey obtiene todos sus caracteres individuales.
 
-    No interpreta los caracteres ni genera keybinds adicionales.
-
-    Ejemplo:
-
-        ActivationKey = "Shift+F"
-
-    produce:
-
-        S
-        h
-        i
-        f
-        t
-        +
-        F
-
-    Returns
-    -------
-    tuple[list[str], list[str]] | None
-        Una lista ordenada de caracteres y una lista de los valores
-        ActivationKey encontrados.
-
-        Si la operación fue cancelada, devuelve None.
+    Cada carácter observado se agrega una sola vez.
     """
 
     json_files = list(JSON_DIR.rglob("*.json"))
@@ -156,10 +100,6 @@ def extract_keybind_characters(report=None, should_stop=None):
 
     for i, path in enumerate(json_files):
 
-        # ---------------------------------------------------------------
-        # Cancelación
-        # ---------------------------------------------------------------
-
         if should_stop and should_stop():
 
             if report:
@@ -169,10 +109,6 @@ def extract_keybind_characters(report=None, should_stop=None):
                 )
 
             return None
-
-        # ---------------------------------------------------------------
-        # Carga
-        # ---------------------------------------------------------------
 
         try:
             data = load_json(path)
@@ -187,15 +123,7 @@ def extract_keybind_characters(report=None, should_stop=None):
 
             continue
 
-        # ---------------------------------------------------------------
-        # Descubrimiento
-        # ---------------------------------------------------------------
-
         values = find_activation_keys(data)
-
-        # ---------------------------------------------------------------
-        # Extracción
-        # ---------------------------------------------------------------
 
         for value in values:
 
@@ -203,10 +131,6 @@ def extract_keybind_characters(report=None, should_stop=None):
 
             for character in value:
                 keybinds.add(character)
-
-        # ---------------------------------------------------------------
-        # Progreso
-        # ---------------------------------------------------------------
 
         if report:
             report(
@@ -219,35 +143,80 @@ def extract_keybind_characters(report=None, should_stop=None):
 
 
 # ===========================================================================
-# PROCESAMIENTO DE TOKENS
+# FORMATEO
+# ===========================================================================
+
+def _wrap_string_list(items, indent, max_width=100):
+    """
+    Copia el formato utilizado por extractor.py.
+
+    Empaqueta strings en varias líneas hasta alcanzar max_width,
+    en vez de escribir un elemento por línea.
+
+    Ejemplo:
+
+        [
+          "a", "b", "c", "d", ...
+        ]
+
+    """
+
+    lines = []
+    current = []
+    current_len = indent
+
+    for idx, item in enumerate(items):
+
+        piece = json.dumps(
+            item,
+            ensure_ascii=False
+        )
+
+        piece += "," if idx < len(items) - 1 else ""
+
+        piece_len = len(piece) + 1
+
+        if current and current_len + piece_len > max_width:
+
+            lines.append(
+                " " * indent + " ".join(current)
+            )
+
+            current = []
+            current_len = indent
+
+        current.append(piece)
+        current_len += piece_len
+
+    if current:
+
+        lines.append(
+            " " * indent + " ".join(current)
+        )
+
+    return lines
+
+
+# ===========================================================================
+# LOCALIZACIÓN DE KEYBINDS
 # ===========================================================================
 
 def find_keybinds_section(text):
     """
-    Localiza exclusivamente la lista:
+    Encuentra exclusivamente la sección:
 
         "keybinds": [
             ...
         ]
 
-    dentro de tokens.json.
-
-    Devuelve:
+    y devuelve:
 
         (start, end)
 
-    donde:
+    donde start y end delimitan únicamente el contenido interno
+    de la lista.
 
-        start
-            Es la posición inmediatamente posterior a la línea
-            de apertura de keybinds.
-
-        end
-            Es la posición donde comienza la línea de cierre ']'.
-
-    Esto permite reemplazar únicamente el contenido de la lista.
-
-    No se utiliza json.dumps() sobre tokens.json completo.
+    La línea de apertura y la línea de cierre permanecen intactas.
     """
 
     lines = text.splitlines(keepends=True)
@@ -255,14 +224,17 @@ def find_keybinds_section(text):
     keybinds_line_index = None
 
     # -----------------------------------------------------------------------
-    # Buscar apertura de keybinds
+    # Buscar línea de apertura
     # -----------------------------------------------------------------------
 
     for i, line in enumerate(lines):
 
         stripped = line.strip()
 
-        if stripped.startswith('"keybinds"') and stripped.endswith("["):
+        if (
+            stripped.startswith('"keybinds"')
+            and stripped.endswith("[")
+        ):
 
             keybinds_line_index = i
             break
@@ -274,7 +246,7 @@ def find_keybinds_section(text):
         )
 
     # -----------------------------------------------------------------------
-    # Posición inicial del contenido
+    # Inicio del contenido
     # -----------------------------------------------------------------------
 
     start = sum(
@@ -283,7 +255,7 @@ def find_keybinds_section(text):
     )
 
     # -----------------------------------------------------------------------
-    # Buscar cierre de keybinds
+    # Buscar línea de cierre
     # -----------------------------------------------------------------------
 
     end_line_index = None
@@ -293,9 +265,7 @@ def find_keybinds_section(text):
         len(lines)
     ):
 
-        stripped = lines[i].strip()
-
-        if stripped == "]":
+        if lines[i].strip() == "]":
 
             end_line_index = i
             break
@@ -317,23 +287,17 @@ def find_keybinds_section(text):
 
 def get_keybinds_indentation(text):
     """
-    Obtiene la indentación utilizada por los elementos de la lista
-    keybinds.
+    Obtiene la indentación de los elementos de keybinds.
 
-    Si la lista ya contiene elementos, utiliza la indentación de
-    uno de ellos.
+    Si existen elementos, copia la indentación de uno de ellos.
 
-    Si está vacía, utiliza la indentación de la propia propiedad
-    keybinds y agrega dos espacios.
+    Si la lista está vacía, utiliza la indentación de la propiedad
+    keybinds + dos espacios.
     """
 
     lines = text.splitlines()
 
     keybinds_line_index = None
-
-    # -----------------------------------------------------------------------
-    # Localizar keybinds
-    # -----------------------------------------------------------------------
 
     for i, line in enumerate(lines):
 
@@ -354,7 +318,7 @@ def get_keybinds_indentation(text):
         )
 
     # -----------------------------------------------------------------------
-    # Buscar indentación de un elemento existente
+    # Intentar copiar la indentación de un elemento existente
     # -----------------------------------------------------------------------
 
     for i in range(
@@ -369,20 +333,19 @@ def get_keybinds_indentation(text):
 
         if stripped:
 
-            return lines[i][
-                :len(lines[i]) - len(lines[i].lstrip())
-            ]
+            return len(lines[i]) - len(lines[i].lstrip())
 
     # -----------------------------------------------------------------------
     # Lista vacía
     # -----------------------------------------------------------------------
 
-    keybinds_indent = lines[keybinds_line_index][
-        :len(lines[keybinds_line_index])
-        - len(lines[keybinds_line_index].lstrip())
-    ]
+    keybinds_indent = len(
+        lines[keybinds_line_index]
+    ) - len(
+        lines[keybinds_line_index].lstrip()
+    )
 
-    return keybinds_indent + "  "
+    return keybinds_indent + 2
 
 
 # ===========================================================================
@@ -391,15 +354,16 @@ def get_keybinds_indentation(text):
 
 def replace_keybinds_only(keybinds):
     """
-    Reemplaza exclusivamente el contenido de Characters.keybinds.
+    Reemplaza exclusivamente el contenido de keybinds.
 
-    Todo el contenido externo a esa lista permanece intacto.
+    El formato interno utiliza exactamente la misma lógica de
+    empaquetado que extractor.py.
 
-    No se vuelve a serializar tokens.json completo.
+    Todo lo demás de tokens.json permanece intacto.
     """
 
     # -----------------------------------------------------------------------
-    # Leer archivo original
+    # Leer archivo
     # -----------------------------------------------------------------------
 
     with open(
@@ -421,34 +385,28 @@ def replace_keybinds_only(keybinds):
     # Obtener indentación
     # -----------------------------------------------------------------------
 
-    item_indent = get_keybinds_indentation(text)
+    indent = get_keybinds_indentation(text)
 
     # -----------------------------------------------------------------------
-    # Detectar salto de línea utilizado por el archivo
+    # Detectar salto de línea
     # -----------------------------------------------------------------------
 
     newline = "\r\n" if "\r\n" in text else "\n"
 
     # -----------------------------------------------------------------------
-    # Construir nuevo contenido
+    # Formatear utilizando el mismo algoritmo de extractor.py
     # -----------------------------------------------------------------------
 
-    new_content_lines = []
+    formatted_lines = _wrap_string_list(
+        keybinds,
+        indent,
+        max_width=100
+    )
 
-    for index, character in enumerate(keybinds):
+    new_content = ""
 
-        encoded = json.dumps(
-            character,
-            ensure_ascii=False
-        )
-
-        comma = "," if index < len(keybinds) - 1 else ""
-
-        new_content_lines.append(
-            f"{item_indent}{encoded}{comma}{newline}"
-        )
-
-    new_content = "".join(new_content_lines)
+    if formatted_lines:
+        new_content = newline.join(formatted_lines) + newline
 
     # -----------------------------------------------------------------------
     # Reemplazo quirúrgico
@@ -460,13 +418,12 @@ def replace_keybinds_only(keybinds):
     #
     # Se reemplaza:
     #
-    #     TODO EL CONTENIDO INTERNO
+    #     SOLO el contenido interno
     #
     # Se conserva:
     #
     #     ]
     #
-    # Todo lo demás del archivo permanece exactamente igual.
     # -----------------------------------------------------------------------
 
     new_text = (
@@ -476,7 +433,7 @@ def replace_keybinds_only(keybinds):
     )
 
     # -----------------------------------------------------------------------
-    # Escritura
+    # Escribir
     # -----------------------------------------------------------------------
 
     with open(
@@ -498,18 +455,10 @@ def run(report=None, should_stop=None, ask=None):
     Punto de entrada utilizado por KeybindsStage.
     """
 
-    # -----------------------------------------------------------------------
-    # Extracción
-    # -----------------------------------------------------------------------
-
     result = extract_keybind_characters(
         report=report,
         should_stop=should_stop
     )
-
-    # -----------------------------------------------------------------------
-    # Cancelación
-    # -----------------------------------------------------------------------
 
     if result is None:
         return
@@ -519,15 +468,7 @@ def run(report=None, should_stop=None, ask=None):
     if should_stop and should_stop():
         return
 
-    # -----------------------------------------------------------------------
-    # Escritura
-    # -----------------------------------------------------------------------
-
     replace_keybinds_only(keybinds)
-
-    # -----------------------------------------------------------------------
-    # Resultado
-    # -----------------------------------------------------------------------
 
     msg = (
         f"Keybinds encontrados: {len(keybinds)} | "
