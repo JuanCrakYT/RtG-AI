@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from pipeline.orchestrator import Stage
 from extractor.extractor import run as run_extractor, TOKENS_PATH
+from extractor.keybinds import run as run_keybinds
 
 
 class ExtractorStage(Stage):
@@ -24,6 +25,18 @@ class ExtractorStage(Stage):
     def run(self, context, report, should_stop, ask):
         run_extractor(report=report, should_stop=should_stop, ask=ask)
 
+class KeybindsStage(Stage):
+    name = "keybinds"
+
+    def required_files(self):
+        return [str(TOKENS_PATH)]
+
+    def run(self, context, report, should_stop, ask):
+        run_keybinds(
+            report=report,
+            should_stop=should_stop,
+            ask=ask
+        )
 
 # Etapas futuras (no implementadas todavía, sin depender de código que aún no existe):
 # class DatasetGeneratorStage(Stage): ...   # dev/dataset/generator.py
@@ -33,4 +46,7 @@ class ExtractorStage(Stage):
 def build_pipeline():
     """Lista de etapas activas, en orden de ejecución.
     Editar acá al agregar DatasetGeneratorStage, TokenizerStage, TrainingStage."""
-    return [ExtractorStage()]
+    return [
+        ExtractorStage(),
+        KeybindsStage(),
+    ]
