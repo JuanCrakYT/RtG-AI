@@ -20,7 +20,13 @@
     "un bloque {type}",
     "una pieza del tipo {type}",
     "{type}",
-    "un {type} más",
+    "un {type}",
+    "un solo {type}",
+    "una sola pieza {type}",
+    "un solo bloque {type}",
+    "una sola pieza del tipo {type}",
+    "un solo objeto {type}",
+    "un objeto {type}",
     "una pieza {type} más"
   ],
 
@@ -29,6 +35,8 @@
     "{color}",
     "pintado de {color}",
     "con color {color}",
+    "con el color {color}",
+    "de el color {color}",
     "usando el color {color}",
     "con un color {color}",
     "establecido en {color}"
@@ -69,7 +77,6 @@
     ],
     "brown": [
       "café",
-      "marrón",
       "marrón"
     ],
     "white": [
@@ -138,7 +145,8 @@
       "activo",
       "habilitado",
       "sí",
-      "verdadero"
+      "verdadero",
+      "con"
     ],
     "false": [
       "desactivado",
@@ -146,7 +154,8 @@
       "inactivo",
       "deshabilitado",
       "no",
-      "falso"
+      "falso",
+      "sin"
     ]
   },
 
@@ -160,38 +169,35 @@
       "velocidad"
     ],
     "Rotation": [
-      "rotación",
-      "giro"
+      "rotación"
     ],
     "Volume": [
       "volumen"
     ],
     "Quantity": [
-      "cantidad",
-      "número"
+      "cantidad"
     ],
     "Text": [
-      "texto",
-      "mensaje"
+      "texto"
     ],
     "Length": [
-      "longitud",
-      "tamaño"
+      "longitud"
     ],
     "Visible": [
-      "visibilidad"
+      "visible",
+      "visibilidad",
+      "que se ve",
+      "que se puede ver",
+      "que se pueda ver"
     ],
     "Activated": [
-      "activación",
-      "estado de activación"
+      "activado"
     ],
     "Shooting": [
-      "disparo",
-      "estado de disparo"
+      "disparo"
     ],
     "ItemTurn": [
-      "giro del objeto",
-      "rotación del objeto"
+      "giro del objeto"
     ]
   }
 }

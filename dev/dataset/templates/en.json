@@ -8,7 +8,7 @@
     "put",
     "drop",
     "insert",
-    "add in",
+    "set down",
     "place down",
     "put down"
   ],
@@ -28,9 +28,9 @@
     "colored {color}",
     "in {color}",
     "painted {color}",
+    "with {color}",
     "with a {color} color",
     "using {color}",
-    "with {color}",
     "set to {color}"
   ],
 
@@ -82,9 +82,11 @@
     "connected to the previous {parent_type}",
     "attached to the previous {parent_type}",
     "linked to the previous {parent_type}",
+    "joined to the previous {parent_type}",
     "connected to the {parent_type} at index {index}",
     "attached to the {parent_type} at index {index}",
     "linked to the {parent_type} at index {index}",
+    "joined to the {parent_type} at index {index}",
     "connected with the {parent_type} at index {index}",
     "attached to the {parent_type} at point {point}",
     "connected to the {parent_type} at point {point}",
@@ -104,7 +106,8 @@
     "and {prop} {value}",
     "where {prop} is set to {value}",
     "where {prop} is {value}",
-    "with {prop} configured as {value}"
+    "with {prop} configured as {value}",
+    "with {prop} configured to {value}"
   ],
 
   "orientation_clauses": [
@@ -154,27 +157,23 @@
       "amount"
     ],
     "Text": [
-      "text",
-      "message"
+      "text"
     ],
     "Length": [
-      "length",
-      "size"
+      "length"
     ],
     "Visible": [
+      "visible",
       "visibility"
     ],
     "Activated": [
-      "activated",
-      "activation"
+      "activated"
     ],
     "Shooting": [
-      "shooting",
-      "firing"
+      "shooting"
     ],
     "ItemTurn": [
-      "item turn",
-      "item rotation"
+      "item turn"
     ]
   }
 }
