@@ -1,0 +1,19 @@
+{
+  "verbs": ["generate", "add", "create", "place", "spawn", "put", "drop"],
+  "object_ref": ["a {type}", "a {type} piece", "{type}"],
+  "color_clauses": ["colored {color}", "{color}", "painted {color}", "in {color}"],
+  "colors": {
+    "red": ["red"], "orange": ["orange"], "yellow": ["yellow"],
+    "green": ["green"], "cyan": ["cyan", "light blue"], "blue": ["blue"],
+    "purple": ["purple", "violet"], "pink": ["pink"],
+    "brown": ["brown"], "white": ["white"],
+    "gray": ["gray", "grey"], "black": ["black"]
+  },
+  "connection_clauses": [
+    "connected to the previous {parent_type}",
+    "connected to the {parent_type} at index {index}",
+    "attached to the {parent_type} at point {point}",
+    "linked to {parent_type} #{index}"
+  ],
+  "property_clauses": ["with {prop} set to {value}", "with {prop} {value}", "and {prop} {value}"]
+}

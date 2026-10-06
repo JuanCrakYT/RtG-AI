@@ -1,0 +1,19 @@
+{
+  "verbs": ["genera", "agrega", "crea", "pon", "coloca", "añade", "mete"],
+  "object_ref": ["un {type}", "una pieza {type}", "{type}"],
+  "color_clauses": ["de color {color}", "{color}", "pintado de {color}", "con color {color}"],
+  "colors": {
+    "red": ["rojo"], "orange": ["naranja"], "yellow": ["amarillo"],
+    "green": ["verde"], "cyan": ["cian", "celeste"], "blue": ["azul"],
+    "purple": ["morado", "violeta"], "pink": ["rosa", "rosado"],
+    "brown": ["café", "marrón"], "white": ["blanco"],
+    "gray": ["gris"], "black": ["negro"]
+  },
+  "connection_clauses": [
+    "conectado al {parent_type} anterior",
+    "conectado al {parent_type} del índice {index}",
+    "pegado al {parent_type} en el punto {point}",
+    "unido al {parent_type} #{index}"
+  ],
+  "property_clauses": ["con {prop} en {value}", "con {prop} {value}", "y {prop} {value}"]
+}
