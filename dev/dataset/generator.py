@@ -10,6 +10,9 @@ import sys
 import json
 import random
 from pathlib import Path
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -44,7 +47,7 @@ def generate_examples_for_build(build, source_name, templates, rng):
             if isinstance(parent_index, int) and 1 <= parent_index <= len(context):
                 parent_type = context[parent_index - 1][0]
             else:
-                parent_index = None  # índice inválido, no describimos conexión
+                parent_index = None
 
         for lang in LANGUAGES:
             seen = set()
@@ -66,42 +69,75 @@ def generate_examples_for_build(build, source_name, templates, rng):
     return examples
 
 
-def run(report=None, should_stop=None, ask=None, seed=42):
+def _process_one_file(path_str, templates, seed):
+    """Función de worker: corre en un proceso aparte. Debe recibir todo lo
+    que necesita como argumento (templates, seed) porque los procesos no
+    comparten memoria entre sí."""
+    path = Path(path_str)
+    data = load_json(path, None)
+    build = get_top_level_build(data) if data is not None else None
+
+    if build is None:
+        return path.name, None
+
+    # Semilla propia por archivo, independiente del orden de ejecución o
+    # finalización: así el resultado es reproducible aunque los procesos
+    # terminen en un orden distinto cada vez.
+    local_rng = random.Random(f"{seed}:{path.name}")
+    examples = generate_examples_for_build(build, path.name, templates, local_rng)
+    return path.name, examples
+
+
+def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None):
     templates = load_templates()
-    rng = random.Random(seed)
+    max_workers = max_workers or os.cpu_count() or 1
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     writers = {lang: open(OUTPUT_DIR / f"dataset_{lang}.jsonl", "w", encoding="utf-8") for lang in LANGUAGES}
 
-    json_files = list(JSON_DIR.rglob("*.json"))
+    # Orden estable: necesario para que el reporte de progreso sea
+    # consistente entre corridas, aunque el procesamiento en sí ya no
+    # depende del orden gracias a la semilla por archivo.
+    json_files = sorted(JSON_DIR.rglob("*.json"), key=lambda p: p.name)
     total = len(json_files) or 1
-    total_examples, skipped_files = 0, 0
+    total_examples, skipped_files, completed = 0, 0, 0
 
     try:
-        for i, path in enumerate(json_files):
-            if should_stop and should_stop():
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(_process_one_file, str(path), templates, seed): path
+                for path in json_files
+            }
+
+            for future in as_completed(futures):
+                if should_stop and should_stop():
+                    # Cancela las tareas que todavía no empezaron; las que ya
+                    # están corriendo en otro proceso se dejan terminar solas
+                    # (no se pueden interrumpir a mitad de trabajo de forma limpia).
+                    for f in futures:
+                        f.cancel()
+                    if report:
+                        report((completed / total) * 100, "Cancelado por el usuario")
+                    return
+
+                name, examples = future.result()
+                completed += 1
+
+                if examples is None:
+                    skipped_files += 1
+                else:
+                    for example in examples:
+                        writers[example["language"]].write(json.dumps(example, ensure_ascii=False) + "\n")
+                    total_examples += len(examples)
+
                 if report:
-                    report((i / total) * 100, "Cancelado por el usuario")
-                return
-
-            data = load_json(path, None)
-            build = get_top_level_build(data) if data is not None else None
-
-            if build is None:
-                skipped_files += 1
-            else:
-                examples = generate_examples_for_build(build, path.name, templates, rng)
-                for example in examples:
-                    writers[example["language"]].write(json.dumps(example, ensure_ascii=False) + "\n")
-                total_examples += len(examples)
-
-            if report:
-                report((i + 1) / total * 100, f"Procesado {path.name} ({i + 1}/{total})")
+                    report((completed / total) * 100, f"Procesado {name} ({completed}/{total})")
     finally:
         for w in writers.values():
             w.close()
 
-    msg = f"Ejemplos generados: {total_examples} | Archivos omitidos (no son build válido): {skipped_files}"
+    msg = (f"Ejemplos generados: {total_examples} | Archivos omitidos (no son build válido): {skipped_files} | "
+           f"Procesos usados: {max_workers}")
     print(msg)
     if report:
         report(100, msg)

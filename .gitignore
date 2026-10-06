@@ -185,4 +185,4 @@ cython_debug/
 .vscode/
 
 # Code Output
-dev/dataset/output/
+dev/dataset/output/*

@@ -1,9 +1,0 @@
-{
-  "property": {
-    "es": [
-      "{name} {value}",
-      "con {name} {value}",
-      "con {name} de {value}"
-    ]
-  }
-}
