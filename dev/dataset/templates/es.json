@@ -1,36 +1,197 @@
 {
-  "verbs": ["genera", "agrega", "crea", "pon", "coloca", "añade", "mete"],
-  "object_ref": ["un {type}", "una pieza {type}", "{type}"],
-  "color_clauses": ["de color {color}", "{color}", "pintado de {color}", "con color {color}"],
+  "verbs": [
+    "genera",
+    "agrega",
+    "crea",
+    "pon",
+    "coloca",
+    "añade",
+    "mete",
+    "inserta",
+    "pon aquí",
+    "coloca aquí",
+    "añade aquí"
+  ],
+
+  "object_ref": [
+    "un {type}",
+    "una pieza {type}",
+    "un objeto {type}",
+    "un bloque {type}",
+    "una pieza del tipo {type}",
+    "{type}",
+    "un {type} más",
+    "una pieza {type} más"
+  ],
+
+  "color_clauses": [
+    "de color {color}",
+    "{color}",
+    "pintado de {color}",
+    "con color {color}",
+    "usando el color {color}",
+    "con un color {color}",
+    "establecido en {color}"
+  ],
+
   "colors": {
-    "red": ["rojo"], "orange": ["naranja"], "yellow": ["amarillo"],
-    "green": ["verde"], "cyan": ["cian", "celeste"], "blue": ["azul"],
-    "purple": ["morado", "violeta"], "pink": ["rosa", "rosado"],
-    "brown": ["café", "marrón"], "white": ["blanco"],
-    "gray": ["gris"], "black": ["negro"]
+    "red": [
+      "rojo",
+      "roja"
+    ],
+    "orange": [
+      "naranja"
+    ],
+    "yellow": [
+      "amarillo",
+      "amarilla"
+    ],
+    "green": [
+      "verde"
+    ],
+    "cyan": [
+      "cian",
+      "celeste",
+      "turquesa"
+    ],
+    "blue": [
+      "azul"
+    ],
+    "purple": [
+      "morado",
+      "morada",
+      "violeta"
+    ],
+    "pink": [
+      "rosa",
+      "rosado",
+      "rosada"
+    ],
+    "brown": [
+      "café",
+      "marrón",
+      "marrón"
+    ],
+    "white": [
+      "blanco",
+      "blanca"
+    ],
+    "gray": [
+      "gris"
+    ],
+    "black": [
+      "negro",
+      "negra"
+    ]
   },
+
   "connection_clauses": [
     "conectado al {parent_type} anterior",
+    "conectada al {parent_type} anterior",
+    "pegado al {parent_type} anterior",
+    "unido al {parent_type} anterior",
+    "vinculado al {parent_type} anterior",
     "conectado al {parent_type} del índice {index}",
+    "conectada al {parent_type} del índice {index}",
+    "pegado al {parent_type} del índice {index}",
+    "unido al {parent_type} del índice {index}",
+    "vinculado al {parent_type} del índice {index}",
+    "conectado con el {parent_type} del índice {index}",
+    "conectado al {parent_type} en el punto {point}",
+    "conectada al {parent_type} en el punto {point}",
     "pegado al {parent_type} en el punto {point}",
-    "unido al {parent_type} #{index}"
+    "unido al {parent_type} en el punto {point}",
+    "vinculado al {parent_type} en el punto {point}",
+    "conectado a {parent_type} #{index}",
+    "conectada a {parent_type} #{index}",
+    "pegado a {parent_type} #{index}",
+    "unido a {parent_type} #{index}"
   ],
-  "property_clauses": ["con {prop} en {value}", "con {prop} {value}", "y {prop} {value}"],
+
+  "property_clauses": [
+    "con {prop} en {value}",
+    "con {prop} establecido en {value}",
+    "con {prop} configurado en {value}",
+    "con {prop} como {value}",
+    "y {prop} en {value}",
+    "y {prop} establecido en {value}",
+    "y {prop} configurado en {value}",
+    "donde {prop} está en {value}",
+    "donde {prop} está establecido en {value}",
+    "con {prop} configurado como {value}"
+  ],
+
   "orientation_clauses": [
     "orientado a {value} en {axis}",
     "con una orientación de {value} en el eje {axis}",
-    "rotado {value} grados en {axis}"
+    "con una orientación de {value} sobre el eje {axis}",
+    "rotado {value} grados en el eje {axis}",
+    "establecido en {value} en el eje {axis}",
+    "con la orientación del eje {axis} establecida en {value}",
+    "con la rotación del eje {axis} establecida en {value}"
   ],
+
   "boolean_words": {
-    "true": ["activado", "encendido", "sí"],
-    "false": ["desactivado", "apagado", "no"]
+    "true": [
+      "activado",
+      "encendido",
+      "activo",
+      "habilitado",
+      "sí",
+      "verdadero"
+    ],
+    "false": [
+      "desactivado",
+      "apagado",
+      "inactivo",
+      "deshabilitado",
+      "no",
+      "falso"
+    ]
   },
+
   "property_names": {
-    "Bullets": ["balas", "municiones"],
-    "Speed": ["velocidad"],
-    "Rotation": ["rotación"],
-    "Volume": ["volumen"],
-    "Quantity": ["cantidad"],
-    "Text": ["texto"]
+    "Bullets": [
+      "balas",
+      "munición",
+      "municiones"
+    ],
+    "Speed": [
+      "velocidad"
+    ],
+    "Rotation": [
+      "rotación",
+      "giro"
+    ],
+    "Volume": [
+      "volumen"
+    ],
+    "Quantity": [
+      "cantidad",
+      "número"
+    ],
+    "Text": [
+      "texto",
+      "mensaje"
+    ],
+    "Length": [
+      "longitud",
+      "tamaño"
+    ],
+    "Visible": [
+      "visibilidad"
+    ],
+    "Activated": [
+      "activación",
+      "estado de activación"
+    ],
+    "Shooting": [
+      "disparo",
+      "estado de disparo"
+    ],
+    "ItemTurn": [
+      "giro del objeto",
+      "rotación del objeto"
+    ]
   }
 }

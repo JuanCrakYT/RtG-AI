@@ -1,36 +1,180 @@
 {
-  "verbs": ["generate", "add", "create", "place", "spawn", "put", "drop"],
-  "object_ref": ["a {type}", "a {type} piece", "{type}"],
-  "color_clauses": ["colored {color}", "{color}", "painted {color}", "in {color}"],
+  "verbs": [
+    "generate",
+    "add",
+    "create",
+    "place",
+    "spawn",
+    "put",
+    "drop",
+    "insert",
+    "add in",
+    "place down",
+    "put down"
+  ],
+
+  "object_ref": [
+    "a {type}",
+    "a {type} piece",
+    "a {type} object",
+    "a {type} block",
+    "a {type} part",
+    "{type}",
+    "one {type}",
+    "one {type} piece"
+  ],
+
+  "color_clauses": [
+    "colored {color}",
+    "in {color}",
+    "painted {color}",
+    "with a {color} color",
+    "using {color}",
+    "with {color}",
+    "set to {color}"
+  ],
+
   "colors": {
-    "red": ["red"], "orange": ["orange"], "yellow": ["yellow"],
-    "green": ["green"], "cyan": ["cyan", "light blue"], "blue": ["blue"],
-    "purple": ["purple", "violet"], "pink": ["pink"],
-    "brown": ["brown"], "white": ["white"],
-    "gray": ["gray", "grey"], "black": ["black"]
+    "red": [
+      "red"
+    ],
+    "orange": [
+      "orange"
+    ],
+    "yellow": [
+      "yellow"
+    ],
+    "green": [
+      "green"
+    ],
+    "cyan": [
+      "cyan",
+      "light blue",
+      "turquoise"
+    ],
+    "blue": [
+      "blue"
+    ],
+    "purple": [
+      "purple",
+      "violet"
+    ],
+    "pink": [
+      "pink",
+      "rose"
+    ],
+    "brown": [
+      "brown"
+    ],
+    "white": [
+      "white"
+    ],
+    "gray": [
+      "gray",
+      "grey"
+    ],
+    "black": [
+      "black"
+    ]
   },
+
   "connection_clauses": [
     "connected to the previous {parent_type}",
+    "attached to the previous {parent_type}",
+    "linked to the previous {parent_type}",
     "connected to the {parent_type} at index {index}",
+    "attached to the {parent_type} at index {index}",
+    "linked to the {parent_type} at index {index}",
+    "connected with the {parent_type} at index {index}",
     "attached to the {parent_type} at point {point}",
+    "connected to the {parent_type} at point {point}",
+    "linked to the {parent_type} at point {point}",
+    "joined to the {parent_type} at point {point}",
+    "connected to {parent_type} #{index}",
+    "attached to {parent_type} #{index}",
     "linked to {parent_type} #{index}"
   ],
-  "property_clauses": ["with {prop} set to {value}", "with {prop} {value}", "and {prop} {value}"],
+
+  "property_clauses": [
+    "with {prop} set to {value}",
+    "with {prop} set as {value}",
+    "with {prop} {value}",
+    "and {prop} set to {value}",
+    "and {prop} set as {value}",
+    "and {prop} {value}",
+    "where {prop} is set to {value}",
+    "where {prop} is {value}",
+    "with {prop} configured as {value}"
+  ],
+
   "orientation_clauses": [
     "oriented at {value} on {axis}",
+    "with an orientation of {value} on the {axis} axis",
     "with a {value} orientation on the {axis} axis",
-    "rotated {value} degrees on {axis}"
+    "rotated {value} degrees on the {axis} axis",
+    "set to {value} on the {axis} axis",
+    "with {axis} orientation set to {value}",
+    "with the {axis} rotation set to {value}"
   ],
+
   "boolean_words": {
-    "true": ["on", "enabled", "active"],
-    "false": ["off", "disabled", "inactive"]
+    "true": [
+      "on",
+      "enabled",
+      "active",
+      "activated",
+      "true"
+    ],
+    "false": [
+      "off",
+      "disabled",
+      "inactive",
+      "deactivated",
+      "false"
+    ]
   },
+
   "property_names": {
-    "Bullets": ["bullets", "rounds", "ammo"],
-    "Speed": ["speed"],
-    "Rotation": ["rotation"],
-    "Volume": ["volume"],
-    "Quantity": ["quantity"],
-    "Text": ["text"]
+    "Bullets": [
+      "bullets",
+      "rounds",
+      "ammo"
+    ],
+    "Speed": [
+      "speed"
+    ],
+    "Rotation": [
+      "rotation"
+    ],
+    "Volume": [
+      "volume"
+    ],
+    "Quantity": [
+      "quantity",
+      "amount"
+    ],
+    "Text": [
+      "text",
+      "message"
+    ],
+    "Length": [
+      "length",
+      "size"
+    ],
+    "Visible": [
+      "visibility"
+    ],
+    "Activated": [
+      "activated",
+      "activation"
+    ],
+    "Shooting": [
+      "shooting",
+      "firing"
+    ],
+    "ItemTurn": [
+      "item turn",
+      "item rotation"
+    ]
   }
 }
