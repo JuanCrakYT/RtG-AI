@@ -42,12 +42,15 @@ def generate_examples_for_build(build, source_name, templates, rng):
         context = build[:i]  # solo se usa acá, en memoria, para resolver parent_type — nunca se escribe a disco
 
         parent_index, parent_type = None, None
-        if isinstance(connections, list) and connections and isinstance(connections[0], list) and len(connections[0]) == 3:
-            parent_index = connections[0][2]
-            if isinstance(parent_index, int) and 1 <= parent_index <= len(context):
-                parent_type = context[parent_index - 1][0]
-            else:
-                parent_index = None
+        if isinstance(connections, list):
+            for entry in connections:
+                if not (isinstance(entry, list) and len(entry) == 3):
+                    continue
+                candidate_index = entry[2]
+                if isinstance(candidate_index, int) and 1 <= candidate_index <= len(context):
+                    parent_index = candidate_index
+                    parent_type = context[candidate_index - 1][0]
+                    break  # primera conexión que resuelve a un padre válido
 
         for lang in LANGUAGES:
             seen = set()

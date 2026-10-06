@@ -31,7 +31,7 @@ def closest_color_name(rgb):
 # Propiedades que no se describen como "con {prop} {value}" porque son
 # estructuras complejas (contenedores) o ya se describen aparte (color).
 SKIP_PROPERTIES = {"RGB", "EphemeralAttachments"}
-
+ORIENTATION_AXES = {"OrientationX": "X", "OrientationY": "Y", "OrientationZ": "Z"}
 
 def describe_object(obj_type, connections, properties, parent_index, parent_type, templates, rng=random):
     """Devuelve una frase para describir la adición de este objeto.
@@ -58,11 +58,25 @@ def describe_object(obj_type, connections, properties, parent_index, parent_type
     if isinstance(properties, dict):
         extra_props = [k for k in properties if k not in SKIP_PROPERTIES]
         rng.shuffle(extra_props)
-        for prop_name in extra_props[:2]:  # como mucho 2 propiedades extra por frase, para no saturar
-            if rng.random() < 0.5:  # no siempre se mencionan, para variar
-                parts.append(rng.choice(templates["property_clauses"]).format(
-                    prop=prop_name, value=properties[prop_name]
-                ))
+        for prop_name in extra_props[:2]:
+            if rng.random() >= 0.5:
+                continue
+            value = properties[prop_name]
+
+            if prop_name in ORIENTATION_AXES and templates.get("orientation_clauses"):
+                clause = rng.choice(templates["orientation_clauses"]).format(
+                    axis=ORIENTATION_AXES[prop_name], value=value
+                )
+            elif isinstance(value, bool) and templates.get("boolean_words"):
+                display_name = rng.choice(templates.get("property_names", {}).get(prop_name, [prop_name]))
+                word_key = "true" if value else "false"
+                localized_value = rng.choice(templates["boolean_words"][word_key])
+                clause = rng.choice(templates["property_clauses"]).format(prop=display_name, value=localized_value)
+            else:
+                display_name = rng.choice(templates.get("property_names", {}).get(prop_name, [prop_name]))
+                clause = rng.choice(templates["property_clauses"]).format(prop=display_name, value=value)
+
+            parts.append(clause)
 
     sentence = " ".join(parts).strip()
     return sentence[0].upper() + sentence[1:] if sentence else sentence

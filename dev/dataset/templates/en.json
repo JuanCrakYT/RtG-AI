@@ -15,5 +15,22 @@
     "attached to the {parent_type} at point {point}",
     "linked to {parent_type} #{index}"
   ],
-  "property_clauses": ["with {prop} set to {value}", "with {prop} {value}", "and {prop} {value}"]
+  "property_clauses": ["with {prop} set to {value}", "with {prop} {value}", "and {prop} {value}"],
+  "orientation_clauses": [
+    "oriented at {value} on {axis}",
+    "with a {value} orientation on the {axis} axis",
+    "rotated {value} degrees on {axis}"
+  ],
+  "boolean_words": {
+    "true": ["on", "enabled", "active"],
+    "false": ["off", "disabled", "inactive"]
+  },
+  "property_names": {
+    "Bullets": ["bullets", "rounds", "ammo"],
+    "Speed": ["speed"],
+    "Rotation": ["rotation"],
+    "Volume": ["volume"],
+    "Quantity": ["quantity"],
+    "Text": ["text"]
+  }
 }

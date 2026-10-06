@@ -15,5 +15,22 @@
     "pegado al {parent_type} en el punto {point}",
     "unido al {parent_type} #{index}"
   ],
-  "property_clauses": ["con {prop} en {value}", "con {prop} {value}", "y {prop} {value}"]
+  "property_clauses": ["con {prop} en {value}", "con {prop} {value}", "y {prop} {value}"],
+  "orientation_clauses": [
+    "orientado a {value} en {axis}",
+    "con una orientación de {value} en el eje {axis}",
+    "rotado {value} grados en {axis}"
+  ],
+  "boolean_words": {
+    "true": ["activado", "encendido", "sí"],
+    "false": ["desactivado", "apagado", "no"]
+  },
+  "property_names": {
+    "Bullets": ["balas", "municiones"],
+    "Speed": ["velocidad"],
+    "Rotation": ["rotación"],
+    "Volume": ["volumen"],
+    "Quantity": ["cantidad"],
+    "Text": ["texto"]
+  }
 }
