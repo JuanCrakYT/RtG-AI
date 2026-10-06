@@ -39,7 +39,7 @@ def load_templates():
 def generate_examples_for_build(build, source_name, templates, rng):
     examples = []
     for i, (obj_type, connections, properties) in enumerate(build):
-        context = build[:i]
+        context = build[:i]  # solo se usa acá, en memoria, para resolver parent_type — nunca se escribe a disco
 
         parent_index, parent_type = None, None
         if isinstance(connections, list) and connections and isinstance(connections[0], list) and len(connections[0]) == 3:
@@ -61,13 +61,51 @@ def generate_examples_for_build(build, source_name, templates, rng):
                 examples.append({
                     "language": lang,
                     "instruction": phrase,
-                    "context_build": context,
                     "target": [[obj_type, connections, properties]],
                     "source_file": source_name,
                     "object_index": i,
                 })
     return examples
 
+
+def reconstruct_context(source_file, object_index):
+    """Reconstruye el build parcial de un ejemplo leyendo el archivo original
+    en vez de guardarlo duplicado en el dataset. Usar esto al entrenar/tokenizar,
+    no en generator.py."""
+    data = load_json(JSON_DIR / source_file, None)
+    build = get_top_level_build(data)
+    if build is None:
+        raise ValueError(f"{source_file} ya no es un build válido (¿se movió o se editó?)")
+    return build[:object_index]
+
+def estimate_output_size(sample_size=5):
+    """Estima el tamaño total del dataset sin escribir nada a disco.
+    Genera una muestra real de `sample_size` archivos para medir el tamaño
+    promedio por ejemplo, y extrapola al resto."""
+    templates = load_templates()
+    json_files = sorted(JSON_DIR.rglob("*.json"), key=lambda p: p.name)
+
+    sample_bytes, sample_examples = 0, 0
+    for path in json_files[:sample_size]:
+        data = load_json(path, None)
+        build = get_top_level_build(data) if data is not None else None
+        if build is None:
+            continue
+        local_rng = random.Random(f"42:{path.name}")
+        examples = generate_examples_for_build(build, path.name, templates, local_rng)
+        sample_examples += len(examples)
+        sample_bytes += sum(len(json.dumps(e, ensure_ascii=False)) + 1 for e in examples)
+
+    if sample_examples == 0:
+        print("La muestra no generó ejemplos, no se puede estimar.")
+        return
+
+    avg_bytes_per_example = sample_bytes / sample_examples
+    estimated_total = avg_bytes_per_example * sample_examples * (len(json_files) / min(sample_size, len(json_files)))
+
+    print(f"Muestra: {sample_examples} ejemplos de {min(sample_size, len(json_files))} archivos, "
+          f"{avg_bytes_per_example:.0f} bytes/ejemplo promedio")
+    print(f"Estimado total ({len(json_files)} archivos): ~{estimated_total / 1024 / 1024:.1f} MB")
 
 def _process_one_file(path_str, templates, seed):
     """Función de worker: corre en un proceso aparte. Debe recibir todo lo
