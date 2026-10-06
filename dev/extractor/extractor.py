@@ -419,11 +419,12 @@ def run(report=None, should_stop=None, ask=None):
                         remove_property_from_tokens(tokens_data, prop_name)
                     # "Conservar", None (cancelado) o stop pedido -> se deja tal cual
 
-    tokens_data[0]["LocalType"] = {
+    tokens_data[0].setdefault("NoTokensData", {})
+    tokens_data[0]["NoTokensData"]["LocalType"] = {
         obj_type: sorted(values)
         for obj_type, values in sorted(local_types_map.items())
     }
-    tokens_data[0]["LocalIDs"] = {
+    tokens_data[0]["NoTokensData"]["LocalIDs"] = {
         obj_type: sorted(values, key=int)
         for obj_type, values in sorted(local_ids_map.items())
     }
