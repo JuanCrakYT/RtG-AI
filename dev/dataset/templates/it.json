@@ -1,0 +1,38 @@
+{
+  "verbs": ["aggiungi", "crea", "genera", "posiziona", "inserisci", "metti", "piazza"],
+  "object_ref": ["un {type}", "un oggetto {type}", "un blocco {type}", "un elemento {type}", "{type}", "un solo {type}"],
+  "color_clauses": ["di colore {color}", "dipinto di {color}", "con il colore {color}", "usando il colore {color}"],
+  "colors": {
+    "red": ["rosso"], "orange": ["arancione"], "yellow": ["giallo"], "green": ["verde"],
+    "cyan": ["ciano", "azzurro", "turchese"], "blue": ["blu"], "purple": ["viola"],
+    "pink": ["rosa"], "brown": ["marrone"], "white": ["bianco"], "gray": ["grigio"], "black": ["nero"]
+  },
+  "connection_clauses": [
+    "collegato a {parent_type} #{index} al punto {point}",
+    "attaccato a {parent_type} #{index} al punto {point}",
+    "unito a {parent_type} #{index} tramite il punto {point}",
+    "legato a {parent_type} all'indice {index}, punto {point}"
+  ],
+  "conjunction": " e ",
+  "property_clauses": ["con {prop} a {value}", "con {prop} uguale a {value}", "dove {prop} è {value}", "con {prop}: {value}"],
+  "orientation_clauses": [
+    "orientato a {value}° sull'asse {axis}",
+    "ruotato di {value}° sull'asse {axis}",
+    "con un orientamento di {value}° sull'asse {axis}",
+    "con la rotazione dell'asse {axis} a {value}°"
+  ],
+  "boolean_words": {
+    "true": ["attivo", "acceso", "abilitato", "sì", "vero"],
+    "false": ["disattivato", "spento", "disabilitato", "no", "falso"]
+  },
+  "property_names": {
+    "Bullets": ["numero di proiettili", "numero di colpi"], "Speed": ["velocità"], "Rotation": ["rotazione"],
+    "Volume": ["volume"], "Quantity": ["quantità"], "Text": ["testo"], "Length": ["lunghezza"],
+    "Visible": ["visibilità"], "Activated": ["stato di attivazione"], "Shooting": ["sparo"], "ItemTurn": ["rotazione dell'oggetto"]
+  },
+  "sentence_patterns": [
+    "{verb} {object} {color} {connections} {props}",
+    "{verb} {object} {connections} {color} {props}",
+    "{verb} {object} {props} {color} {connections}"
+  ]
+}

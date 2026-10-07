@@ -28,8 +28,8 @@ DATASET_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = DATASET_DIR / "templates"
 OUTPUT_DIR = DATASET_DIR / "output"
 
-LANGUAGES = ["es", "en"]
-VARIATIONS_PER_OBJECT = 20  # tope; si el objeto no da para tantas combinaciones distintas, se corta antes
+LANGUAGES = ["es", "en", "pt", "de", "fr", "ru", "zh", "ja", "ko", "it", "tr", "pl"]
+VARIATIONS_PER_OBJECT = 6  # con 12 idiomas, 20 pesaría varios GB
 MIN_FREE_BYTES = 2 * 1024 ** 3  # si el disco baja de 2 GB libres, se detiene
 DEFAULT_MAX_WORKERS = 4  # cada worker re-importa main.py (y pygame) en Windows; súbelo si te sobra RAM
 

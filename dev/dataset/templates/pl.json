@@ -1,0 +1,35 @@
+{
+  "verbs": ["Utwórz", "Dodaj", "Wygeneruj", "Umieść", "Postaw", "Wstaw"],
+  "object_ref": ["obiekt {type}", "blok {type}", "element {type}", "komponent {type}", "{type}", "jeden obiekt {type}"],
+  "color_clauses": ["kolor: {color}", "kolor {color}", "z kolorem: {color}", "kolor = {color}"],
+  "colors": {
+    "red": ["czerwony"], "orange": ["pomarańczowy"], "yellow": ["żółty"], "green": ["zielony"],
+    "cyan": ["błękitny", "turkusowy"], "blue": ["niebieski"], "purple": ["fioletowy"],
+    "pink": ["różowy"], "brown": ["brązowy"], "white": ["biały"], "gray": ["szary"], "black": ["czarny"]
+  },
+  "connection_clauses": [
+    "połączony z {parent_type} #{index} w punkcie {point}",
+    "przymocowany do {parent_type} #{index} w punkcie {point}",
+    "podłączony do {parent_type} #{index} przez punkt {point}",
+    "powiązany z {parent_type} o indeksie {index}, punkt {point}"
+  ],
+  "conjunction": " i ",
+  "property_clauses": ["{prop}: {value}", "{prop} = {value}", "parametr {prop} wynosi {value}", "z parametrem {prop} równym {value}"],
+  "orientation_clauses": [
+    "orientacja na osi {axis}: {value}°",
+    "obrót na osi {axis}: {value}°",
+    "obrócony o {value}° wokół osi {axis}",
+    "z orientacją {value}° na osi {axis}"
+  ],
+  "boolean_words": {"true": ["wł.", "tak", "true", "prawda"], "false": ["wył.", "nie", "false", "fałsz"]},
+  "property_names": {
+    "Bullets": ["amunicja", "liczba pocisków"], "Speed": ["prędkość"], "Rotation": ["obrót"],
+    "Volume": ["głośność"], "Quantity": ["ilość"], "Text": ["tekst"], "Length": ["długość"],
+    "Visible": ["widoczność"], "Activated": ["aktywacja"], "Shooting": ["strzelanie"], "ItemTurn": ["obrót przedmiotu"]
+  },
+  "sentence_patterns": [
+    "{verb} {object} {color} {connections} {props}",
+    "{verb} {object} {connections} {color} {props}",
+    "{verb} {object} {props} {color} {connections}"
+  ]
+}

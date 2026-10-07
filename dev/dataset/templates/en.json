@@ -1,167 +1,36 @@
 {
-  "verbs": [
-    "generate",
-    "add",
-    "create",
-    "place",
-    "spawn",
-    "put",
-    "drop",
-    "insert",
-    "set down",
-    "place down"
-  ],
-
-  "object_ref": [
-    "a {type}",
-    "a {type} piece",
-    "a {type} object",
-    "a {type} block",
-    "a {type} part",
-    "{type}",
-    "one {type}",
-    "one {type} piece"
-  ],
-
-  "color_clauses": [
-    "colored {color}",
-    "in {color}",
-    "painted {color}",
-    "with {color}",
-    "with a {color} color",
-    "using {color}",
-    "set to {color}"
-  ],
-
+  "verbs": ["add", "create", "generate", "place", "spawn", "put", "insert", "set down"],
+  "object_ref": ["a {type}", "a {type} piece", "a {type} object", "a {type} block", "{type}", "one {type}"],
+  "color_clauses": ["colored {color}", "in {color}", "painted {color}", "with the color {color}", "using the color {color}"],
   "colors": {
-    "red": [
-      "red"
-    ],
-    "orange": [
-      "orange"
-    ],
-    "yellow": [
-      "yellow"
-    ],
-    "green": [
-      "green"
-    ],
-    "cyan": [
-      "cyan",
-      "light blue",
-      "turquoise"
-    ],
-    "blue": [
-      "blue"
-    ],
-    "purple": [
-      "purple",
-      "violet"
-    ],
-    "pink": [
-      "pink",
-      "rose"
-    ],
-    "brown": [
-      "brown"
-    ],
-    "white": [
-      "white"
-    ],
-    "gray": [
-      "gray",
-      "grey"
-    ],
-    "black": [
-      "black"
-    ]
+    "red": ["red"], "orange": ["orange"], "yellow": ["yellow"], "green": ["green"],
+    "cyan": ["cyan", "light blue", "turquoise"], "blue": ["blue"], "purple": ["purple", "violet"],
+    "pink": ["pink", "rose"], "brown": ["brown"], "white": ["white"], "gray": ["gray", "grey"], "black": ["black"]
   },
-
   "connection_clauses": [
     "connected to {parent_type} #{index} at point {point}",
     "attached to {parent_type} #{index} at point {point}",
     "linked to the {parent_type} at index {index}, point {point}",
-    "joined to the {parent_type} #{index} through point {point}"
+    "joined to {parent_type} #{index} through point {point}"
   ],
   "conjunction": " and ",
-
-  "property_clauses": [
-    "with {prop} set to {value}",
-    "with {prop} set as {value}",
-    "with {prop} {value}",
-    "and {prop} set to {value}",
-    "and {prop} set as {value}",
-    "and {prop} {value}",
-    "where {prop} is set to {value}",
-    "where {prop} is {value}",
-    "with {prop} configured as {value}",
-    "with {prop} configured to {value}"
-  ],
-
+  "property_clauses": ["with {prop} set to {value}", "with {prop} {value}", "with {prop} equal to {value}", "where {prop} is {value}", "with {prop} configured as {value}"],
   "orientation_clauses": [
-    "oriented at {value} on {axis}",
-    "with an orientation of {value} on the {axis} axis",
-    "with a {value} orientation on the {axis} axis",
+    "oriented at {value} degrees on the {axis} axis",
+    "with an orientation of {value} degrees on the {axis} axis",
     "rotated {value} degrees on the {axis} axis",
-    "set to {value} on the {axis} axis",
     "with {axis} orientation set to {value}",
     "with the {axis} rotation set to {value}"
   ],
-
-  "boolean_words": {
-    "true": [
-      "on",
-      "enabled",
-      "active",
-      "activated",
-      "true"
-    ],
-    "false": [
-      "off",
-      "disabled",
-      "inactive",
-      "deactivated",
-      "false"
-    ]
-  },
-
+  "boolean_words": {"true": ["on", "enabled", "active", "true"], "false": ["off", "disabled", "inactive", "false"]},
   "property_names": {
-    "Bullets": [
-      "bullets",
-      "rounds",
-      "ammo"
-    ],
-    "Speed": [
-      "speed"
-    ],
-    "Rotation": [
-      "rotation"
-    ],
-    "Volume": [
-      "volume"
-    ],
-    "Quantity": [
-      "quantity",
-      "amount"
-    ],
-    "Text": [
-      "text"
-    ],
-    "Length": [
-      "length"
-    ],
-    "Visible": [
-      "visible",
-      "visibility"
-    ],
-    "Activated": [
-      "activated"
-    ],
-    "Shooting": [
-      "shooting"
-    ],
-    "ItemTurn": [
-      "item turn"
-    ]
-  }
+    "Bullets": ["bullets", "rounds", "ammo"], "Speed": ["speed"], "Rotation": ["rotation"], "Volume": ["volume"],
+    "Quantity": ["quantity", "amount"], "Text": ["text"], "Length": ["length"], "Visible": ["visible", "visibility"],
+    "Activated": ["activated"], "Shooting": ["shooting"], "ItemTurn": ["item turn"]
+  },
+  "sentence_patterns": [
+    "{verb} {object} {color} {connections} {props}",
+    "{verb} {object} {connections} {color} {props}",
+    "{verb} {object} {props} {color} {connections}"
+  ]
 }

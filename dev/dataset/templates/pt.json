@@ -1,0 +1,38 @@
+{
+  "verbs": ["gere", "adicione", "crie", "coloque", "insira", "posicione", "ponha"],
+  "object_ref": ["um {type}", "um objeto {type}", "um bloco {type}", "um elemento {type}", "{type}", "um único {type}"],
+  "color_clauses": ["de cor {color}", "na cor {color}", "com a cor {color}", "usando a cor {color}"],
+  "colors": {
+    "red": ["vermelha"], "orange": ["laranja"], "yellow": ["amarela"], "green": ["verde"],
+    "cyan": ["ciano", "azul-clara", "turquesa"], "blue": ["azul"], "purple": ["roxa", "violeta"],
+    "pink": ["rosa"], "brown": ["marrom"], "white": ["branca"], "gray": ["cinza"], "black": ["preta"]
+  },
+  "connection_clauses": [
+    "conectado a {parent_type} #{index} no ponto {point}",
+    "preso a {parent_type} #{index} no ponto {point}",
+    "ligado a {parent_type} #{index} pelo ponto {point}",
+    "unido a {parent_type} no índice {index}, ponto {point}"
+  ],
+  "conjunction": " e ",
+  "property_clauses": ["com {prop} em {value}", "com {prop} igual a {value}", "onde {prop} é {value}", "com {prop}: {value}"],
+  "orientation_clauses": [
+    "orientado em {value}° no eixo {axis}",
+    "girado {value} graus no eixo {axis}",
+    "com orientação de {value} graus no eixo {axis}",
+    "com a rotação do eixo {axis} em {value}"
+  ],
+  "boolean_words": {
+    "true": ["ativado", "ligado", "habilitado", "sim", "verdadeiro"],
+    "false": ["desativado", "desligado", "desabilitado", "não", "falso"]
+  },
+  "property_names": {
+    "Bullets": ["munição", "número de balas", "quantidade de balas"], "Speed": ["velocidade"], "Rotation": ["rotação"],
+    "Volume": ["volume"], "Quantity": ["quantidade"], "Text": ["texto"], "Length": ["comprimento"],
+    "Visible": ["visibilidade"], "Activated": ["estado de ativação"], "Shooting": ["disparo"], "ItemTurn": ["giro do item"]
+  },
+  "sentence_patterns": [
+    "{verb} {object} {color} {connections} {props}",
+    "{verb} {object} {connections} {color} {props}",
+    "{verb} {object} {props} {color} {connections}"
+  ]
+}

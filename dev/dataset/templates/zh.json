@@ -1,0 +1,36 @@
+{
+  "verbs": ["创建", "添加", "生成", "放置", "插入"],
+  "object_ref": ["{type}", "一个{type}", "一个{type}方块", "一个{type}物体", "一个{type}零件", "一个{type}部件"],
+  "color_clauses": ["，颜色为{color}", "，颜色是{color}", "，涂成{color}", "，颜色设为{color}"],
+  "colors": {
+    "red": ["红色"], "orange": ["橙色"], "yellow": ["黄色"], "green": ["绿色"],
+    "cyan": ["青色", "天蓝色"], "blue": ["蓝色"], "purple": ["紫色"],
+    "pink": ["粉色", "粉红色"], "brown": ["棕色", "褐色"], "white": ["白色"], "gray": ["灰色"], "black": ["黑色"]
+  },
+  "connection_clauses": [
+    "，连接到 {parent_type} #{index} 的点 {point}",
+    "，附着在 {parent_type} #{index} 的点 {point} 上",
+    "，与 {parent_type} #{index} 在点 {point} 处相连",
+    "，连在索引 {index} 的 {parent_type} 的点 {point} 上"
+  ],
+  "conjunction": "",
+  "prop_separator": "",
+  "property_clauses": ["，{prop}为{value}", "，{prop}设为{value}", "，其中{prop}是{value}", "，{prop}设置为{value}"],
+  "orientation_clauses": [
+    "，{axis}轴朝向为{value}°",
+    "，绕{axis}轴旋转{value}°",
+    "，{axis}轴方向设为{value}度",
+    "，朝向在{axis}轴上为{value}度"
+  ],
+  "boolean_words": {"true": ["开启", "启用", "激活", "是", "true"], "false": ["关闭", "禁用", "未激活", "否", "false"]},
+  "property_names": {
+    "Bullets": ["子弹数", "弹药"], "Speed": ["速度"], "Rotation": ["旋转"], "Volume": ["音量"],
+    "Quantity": ["数量"], "Text": ["文本"], "Length": ["长度"], "Visible": ["可见性"],
+    "Activated": ["激活状态"], "Shooting": ["射击"], "ItemTurn": ["物品旋转"]
+  },
+  "sentence_patterns": [
+    "{verb}{object}{color}{connections}{props}",
+    "{verb}{object}{connections}{color}{props}",
+    "{verb}{object}{props}{color}{connections}"
+  ]
+}

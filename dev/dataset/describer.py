@@ -95,7 +95,7 @@ def describe_object(obj_type, properties, parents, templates, rng=random):
             clause = rng.choice(templates["property_clauses"]).format(prop=display, value=shown)
         prop_clauses.append(clause)
     rng.shuffle(prop_clauses)
-    slots["props"] = " ".join(prop_clauses)
+    slots["props"] = templates.get("prop_separator", " ").join(prop_clauses)
 
     patterns = templates.get("sentence_patterns", ["{verb} {object} {color} {connections} {props}"])
     sentence = " ".join(rng.choice(patterns).format(**slots).split())

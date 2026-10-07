@@ -1,0 +1,36 @@
+{
+  "verbs": ["作成して", "追加して", "生成して", "配置して", "置いて"],
+  "object_ref": ["{type}を", "{type}パーツを", "{type}ブロックを", "{type}オブジェクトを", "1つの{type}を", "{type}部品を"],
+  "color_clauses": ["{color}の、", "色が{color}の、", "カラーが{color}の、", "{color}に塗られた、"],
+  "colors": {
+    "red": ["赤色"], "orange": ["オレンジ色"], "yellow": ["黄色"], "green": ["緑色"],
+    "cyan": ["水色", "シアン"], "blue": ["青色"], "purple": ["紫色"],
+    "pink": ["ピンク色"], "brown": ["茶色"], "white": ["白色"], "gray": ["灰色"], "black": ["黒色"]
+  },
+  "connection_clauses": [
+    "{parent_type} #{index} のポイント{point}に接続された、",
+    "{parent_type} #{index} のポイント{point}に取り付けられた、",
+    "インデックス{index}の{parent_type}のポイント{point}につながった、",
+    "{parent_type} #{index} とポイント{point}で結合された、"
+  ],
+  "conjunction": "",
+  "prop_separator": "",
+  "property_clauses": ["{prop}が{value}の、", "{prop}を{value}に設定した、", "{prop}の値が{value}の、", "{prop}が{value}である、"],
+  "orientation_clauses": [
+    "{axis}軸の向きが{value}度の、",
+    "{axis}軸で{value}度回転した、",
+    "{axis}軸の回転が{value}度の、",
+    "{axis}軸の向きを{value}度に設定した、"
+  ],
+  "boolean_words": {"true": ["オン", "有効", "アクティブ", "true"], "false": ["オフ", "無効", "非アクティブ", "false"]},
+  "property_names": {
+    "Bullets": ["弾数", "弾薬"], "Speed": ["速度"], "Rotation": ["回転"], "Volume": ["音量"],
+    "Quantity": ["数量"], "Text": ["テキスト"], "Length": ["長さ"], "Visible": ["表示"],
+    "Activated": ["作動状態"], "Shooting": ["射撃"], "ItemTurn": ["アイテムの回転"]
+  },
+  "sentence_patterns": [
+    "{connections}{color}{props}{object}{verb}",
+    "{color}{connections}{props}{object}{verb}",
+    "{props}{color}{connections}{object}{verb}"
+  ]
+}
