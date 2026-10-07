@@ -1,9 +1,9 @@
 """
 dev/dataset/describer.py
 
-Arma frases en lenguaje natural para un objeto de un build real, usando
-una gramática de slots (combinatoria, no frases fijas). Pura lógica: no
-toca disco ni conoce la estructura de carpetas del proyecto.
+Describe COMPLETAMENTE un objeto de un build real: la instrucción debe
+contener todo lo necesario para reconstruir el target (RGB exacto, todas las
+conexiones, todas las propiedades). Si no, el modelo aprende a inventar.
 """
 
 import random
@@ -15,68 +15,88 @@ CANONICAL_COLORS = {
     "white": (235, 235, 235), "gray": (130, 130, 130), "black": (25, 25, 25),
 }
 
+ORIENTATION_AXES = {"OrientationX": "X", "OrientationY": "Y", "OrientationZ": "Z"}
+SCALAR_TYPES = (bool, int, float, str)
+
 
 def closest_color_name(rgb):
-    if not (isinstance(rgb, list) and len(rgb) == 3):
-        return None
     r, g, b = rgb
-    best_name, best_dist = None, float("inf")
-    for name, (cr, cg, cb) in CANONICAL_COLORS.items():
-        dist = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2
-        if dist < best_dist:
-            best_name, best_dist = name, dist
-    return best_name
+    return min(
+        CANONICAL_COLORS,
+        key=lambda n: (r - CANONICAL_COLORS[n][0]) ** 2
+                      + (g - CANONICAL_COLORS[n][1]) ** 2
+                      + (b - CANONICAL_COLORS[n][2]) ** 2,
+    )
 
 
-# Propiedades que no se describen como "con {prop} {value}" porque son
-# estructuras complejas (contenedores) o ya se describen aparte (color).
-SKIP_PROPERTIES = {"RGB", "EphemeralAttachments"}
-ORIENTATION_AXES = {"OrientationX": "X", "OrientationY": "Y", "OrientationZ": "Z"}
+def normalize_properties(properties):
+    """Quita contenedores vacíos (artefacto de Lua: "EphemeralAttachments": [])
+    y ordena las claves alfabéticamente. El orden original es arbitrario y el
+    cargador del juego lo ignora, así que fijarlo elimina ruido."""
+    if not isinstance(properties, dict):
+        return {}
+    cleaned = {k: v for k, v in properties.items() if v != [] and v != {}}
+    return dict(sorted(cleaned.items()))
 
-def describe_object(obj_type, connections, properties, parent_index, parent_type, templates, rng=random):
-    """Devuelve una frase para describir la adición de este objeto.
-    parent_index/parent_type: del primer elemento de `connections`, o None
-    si el objeto no tiene conexiones (ej. la raíz del build)."""
 
-    verb = rng.choice(templates["verbs"])
-    obj_phrase = rng.choice(templates["object_ref"]).format(type=obj_type)
-    parts = [verb, obj_phrase]
+def _valid_rgb(v):
+    return (isinstance(v, list) and len(v) == 3
+            and all(isinstance(c, (int, float)) and not isinstance(c, bool) for c in v))
 
-    color_name = closest_color_name(properties.get("RGB")) if isinstance(properties, dict) else None
-    if color_name:
-        localized = rng.choice(templates["colors"].get(color_name, [color_name]))
-        parts.append(rng.choice(templates["color_clauses"]).format(color=localized))
 
-    if parent_type is not None:
-        point = None
-        if isinstance(connections, list) and connections and isinstance(connections[0], list) and len(connections[0]) == 3:
-            point = connections[0][1]
-        parts.append(rng.choice(templates["connection_clauses"]).format(
-            parent_type=parent_type, index=parent_index, point=point
-        ))
+def has_complex_properties(properties):
+    """True si hay valores que una frase no puede describir (ej.
+    EphemeralAttachments con cframes). Esos ejemplos se omiten."""
+    for k, v in properties.items():
+        if k == "RGB":
+            if not _valid_rgb(v):
+                return True
+        elif not isinstance(v, SCALAR_TYPES):
+            return True
+    return False
 
-    if isinstance(properties, dict):
-        extra_props = [k for k in properties if k not in SKIP_PROPERTIES]
-        rng.shuffle(extra_props)
-        for prop_name in extra_props[:2]:
-            if rng.random() >= 0.5:
-                continue
-            value = properties[prop_name]
 
-            if prop_name in ORIENTATION_AXES and templates.get("orientation_clauses"):
-                clause = rng.choice(templates["orientation_clauses"]).format(
-                    axis=ORIENTATION_AXES[prop_name], value=value
-                )
-            elif isinstance(value, bool) and templates.get("boolean_words"):
-                display_name = rng.choice(templates.get("property_names", {}).get(prop_name, [prop_name]))
-                word_key = "true" if value else "false"
-                localized_value = rng.choice(templates["boolean_words"][word_key])
-                clause = rng.choice(templates["property_clauses"]).format(prop=display_name, value=localized_value)
+def describe_object(obj_type, properties, parents, templates, rng=random):
+    """properties: ya normalizadas. parents: lista de (punto, índice, tipo_padre)
+    de TODAS las conexiones, en orden (el orden importa, ej. Wire)."""
+    slots = {
+        "verb": rng.choice(templates["verbs"]),
+        "object": rng.choice(templates["object_ref"]).format(type=obj_type),
+        "color": "", "connections": "", "props": "",
+    }
+
+    rgb = properties.get("RGB")
+    if rgb is not None:
+        name = rng.choice(templates["colors"].get(closest_color_name(rgb), [closest_color_name(rgb)]))
+        exact = f"{name} ({rgb[0]}, {rgb[1]}, {rgb[2]})"
+        slots["color"] = rng.choice(templates["color_clauses"]).format(color=exact)
+
+    if parents:
+        clauses = [
+            rng.choice(templates["connection_clauses"]).format(parent_type=t, index=i, point=p)
+            for (p, i, t) in parents
+        ]
+        slots["connections"] = templates.get("conjunction", " and ").join(clauses)
+
+    prop_clauses = []
+    for name, value in properties.items():
+        if name == "RGB":
+            continue
+        if name in ORIENTATION_AXES and templates.get("orientation_clauses"):
+            clause = rng.choice(templates["orientation_clauses"]).format(axis=ORIENTATION_AXES[name], value=value)
+        else:
+            display = rng.choice(templates.get("property_names", {}).get(name, [name]))
+            if isinstance(value, bool):
+                shown = rng.choice(templates["boolean_words"]["true" if value else "false"])
+            elif isinstance(value, str):
+                shown = f'"{value}"'
             else:
-                display_name = rng.choice(templates.get("property_names", {}).get(prop_name, [prop_name]))
-                clause = rng.choice(templates["property_clauses"]).format(prop=display_name, value=value)
+                shown = value
+            clause = rng.choice(templates["property_clauses"]).format(prop=display, value=shown)
+        prop_clauses.append(clause)
+    rng.shuffle(prop_clauses)
+    slots["props"] = " ".join(prop_clauses)
 
-            parts.append(clause)
-
-    sentence = " ".join(parts).strip()
-    return sentence[0].upper() + sentence[1:] if sentence else sentence
+    patterns = templates.get("sentence_patterns", ["{verb} {object} {color} {connections} {props}"])
+    sentence = " ".join(rng.choice(patterns).format(**slots).split())
+    return sentence[:1].upper() + sentence[1:]

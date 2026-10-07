@@ -4,11 +4,16 @@ dev/dataset/generator.py
 Recorre dev/json/*.json, y por cada objeto de cada build real genera
 múltiples frases (es/en) describiendo su adición, usando describer.py.
 Escribe el dataset como JSONL en dev/dataset/output/.
+
+Uso suelto:
+    python dev/dataset/generator.py              # dataset completo
+    python dev/dataset/generator.py --limit 5    # muestra de 5 archivos -> *_sample.jsonl
 """
 
 import sys
 import json
 import random
+import shutil
 from pathlib import Path
 import os
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -17,7 +22,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from extractor.extractor import JSON_DIR, load_json, get_top_level_build
-from dataset.describer import describe_object
+from dataset.describer import describe_object, normalize_properties, has_complex_properties
 
 DATASET_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = DATASET_DIR / "templates"
@@ -25,6 +30,8 @@ OUTPUT_DIR = DATASET_DIR / "output"
 
 LANGUAGES = ["es", "en"]
 VARIATIONS_PER_OBJECT = 20  # tope; si el objeto no da para tantas combinaciones distintas, se corta antes
+MIN_FREE_BYTES = 2 * 1024 ** 3  # si el disco baja de 2 GB libres, se detiene
+DEFAULT_MAX_WORKERS = 4  # cada worker re-importa main.py (y pygame) en Windows; súbelo si te sobra RAM
 
 
 def load_templates():
@@ -36,39 +43,51 @@ def load_templates():
     return templates
 
 
-def generate_examples_for_build(build, source_name, templates, rng):
-    examples = []
-    for i, (obj_type, connections, properties) in enumerate(build):
-        context = build[:i]  # solo se usa acá, en memoria, para resolver parent_type — nunca se escribe a disco
+def resolve_parents(connections, context):
+    """Todas las conexiones como (punto, índice, tipo_padre). Devuelve None si
+    alguna no resuelve dentro del contexto (índice hacia adelante o inválido):
+    describirla a medias enseñaría a inventar la conexión."""
+    parents = []
+    for entry in connections:
+        if not (isinstance(entry, list) and len(entry) == 3):
+            return None
+        _local_type, point, index = entry
+        if not (isinstance(index, int) and 1 <= index <= len(context)):
+            return None
+        parents.append((point, index, context[index - 1][0]))
+    return parents
 
-        parent_index, parent_type = None, None
-        if isinstance(connections, list):
-            for entry in connections:
-                if not (isinstance(entry, list) and len(entry) == 3):
-                    continue
-                candidate_index = entry[2]
-                if isinstance(candidate_index, int) and 1 <= candidate_index <= len(context):
-                    parent_index = candidate_index
-                    parent_type = context[candidate_index - 1][0]
-                    break  # primera conexión que resuelve a un padre válido
+
+def generate_examples_for_build(build, source_name, templates, rng):
+    """Devuelve (examples, skipped). skipped cuenta los objetos omitidos y por qué."""
+    examples = []
+    skipped = {"propiedades_complejas": 0, "conexion_no_resuelta": 0}
+    for i, (obj_type, connections, properties) in enumerate(build):
+        props = normalize_properties(properties)
+        if has_complex_properties(props):
+            skipped["propiedades_complejas"] += 1
+            continue
+        parents = resolve_parents(connections, build[:i])
+        if parents is None:
+            skipped["conexion_no_resuelta"] += 1
+            continue
 
         for lang in LANGUAGES:
-            seen = set()
-            attempts = 0
+            seen, attempts = set(), 0
             while len(seen) < VARIATIONS_PER_OBJECT and attempts < VARIATIONS_PER_OBJECT * 4:
                 attempts += 1
-                phrase = describe_object(obj_type, connections, properties, parent_index, parent_type, templates[lang], rng)
+                phrase = describe_object(obj_type, props, parents, templates[lang], rng)
                 if phrase in seen:
                     continue
                 seen.add(phrase)
                 examples.append({
                     "language": lang,
                     "instruction": phrase,
-                    "target": [[obj_type, connections, properties]],
+                    "target": [[obj_type, connections, props]],
                     "source_file": source_name,
                     "object_index": i,
                 })
-    return examples
+    return examples, skipped
 
 
 def reconstruct_context(source_file, object_index):
@@ -81,21 +100,32 @@ def reconstruct_context(source_file, object_index):
         raise ValueError(f"{source_file} ya no es un build válido (¿se movió o se editó?)")
     return build[:object_index]
 
+
+def select_files(json_files, limit):
+    """Con limit, toma N archivos repartidos parejo sobre la lista ordenada
+    (no los primeros N, que incluirían siempre los mismos archivos)."""
+    if not limit or limit >= len(json_files):
+        return json_files
+    step = max(1, len(json_files) // limit)
+    return json_files[::step][:limit]
+
+
 def estimate_output_size(sample_size=5):
     """Estima el tamaño total del dataset sin escribir nada a disco.
     Genera una muestra real de `sample_size` archivos para medir el tamaño
     promedio por ejemplo, y extrapola al resto."""
     templates = load_templates()
     json_files = sorted(JSON_DIR.rglob("*.json"), key=lambda p: p.name)
+    sample_files = select_files(json_files, sample_size)
 
     sample_bytes, sample_examples = 0, 0
-    for path in json_files[:sample_size]:
+    for path in sample_files:
         data = load_json(path, None)
         build = get_top_level_build(data) if data is not None else None
         if build is None:
             continue
         local_rng = random.Random(f"42:{path.name}")
-        examples = generate_examples_for_build(build, path.name, templates, local_rng)
+        examples, _skipped = generate_examples_for_build(build, path.name, templates, local_rng)
         sample_examples += len(examples)
         sample_bytes += sum(len(json.dumps(e, ensure_ascii=False)) + 1 for e in examples)
 
@@ -104,11 +134,12 @@ def estimate_output_size(sample_size=5):
         return
 
     avg_bytes_per_example = sample_bytes / sample_examples
-    estimated_total = avg_bytes_per_example * sample_examples * (len(json_files) / min(sample_size, len(json_files)))
+    estimated_total = sample_bytes * (len(json_files) / len(sample_files))
 
-    print(f"Muestra: {sample_examples} ejemplos de {min(sample_size, len(json_files))} archivos, "
+    print(f"Muestra: {sample_examples} ejemplos de {len(sample_files)} archivos, "
           f"{avg_bytes_per_example:.0f} bytes/ejemplo promedio")
     print(f"Estimado total ({len(json_files)} archivos): ~{estimated_total / 1024 / 1024:.1f} MB")
+
 
 def _process_one_file(path_str, templates, seed):
     """Función de worker: corre en un proceso aparte. Debe recibir todo lo
@@ -119,29 +150,44 @@ def _process_one_file(path_str, templates, seed):
     build = get_top_level_build(data) if data is not None else None
 
     if build is None:
-        return path.name, None
+        return path.name, None, {}
 
     # Semilla propia por archivo, independiente del orden de ejecución o
     # finalización: así el resultado es reproducible aunque los procesos
     # terminen en un orden distinto cada vez.
     local_rng = random.Random(f"{seed}:{path.name}")
-    examples = generate_examples_for_build(build, path.name, templates, local_rng)
-    return path.name, examples
+    examples, skipped = generate_examples_for_build(build, path.name, templates, local_rng)
+    return path.name, examples, skipped
 
 
-def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None):
+def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None, limit=None):
     templates = load_templates()
-    max_workers = max_workers or os.cpu_count() or 1
+    max_workers = max_workers or min(os.cpu_count() or 1, DEFAULT_MAX_WORKERS)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    writers = {lang: open(OUTPUT_DIR / f"dataset_{lang}.jsonl", "w", encoding="utf-8") for lang in LANGUAGES}
+
+    free = shutil.disk_usage(OUTPUT_DIR).free
+    if free < MIN_FREE_BYTES:
+        raise RuntimeError(
+            f"Espacio libre insuficiente ({free / 1024 ** 3:.1f} GB, mínimo "
+            f"{MIN_FREE_BYTES / 1024 ** 3:.0f} GB): no se genera el dataset."
+        )
+
+    suffix = "_sample" if limit else ""
+    writers = {
+        lang: open(OUTPUT_DIR / f"dataset_{lang}{suffix}.jsonl", "w", encoding="utf-8")
+        for lang in LANGUAGES
+    }
 
     # Orden estable: necesario para que el reporte de progreso sea
     # consistente entre corridas, aunque el procesamiento en sí ya no
     # depende del orden gracias a la semilla por archivo.
-    json_files = sorted(JSON_DIR.rglob("*.json"), key=lambda p: p.name)
+    all_files = sorted(JSON_DIR.rglob("*.json"), key=lambda p: p.name)
+    json_files = select_files(all_files, limit)
     total = len(json_files) or 1
+
     total_examples, skipped_files, completed = 0, 0, 0
+    skipped_totals = {"propiedades_complejas": 0, "conexion_no_resuelta": 0}
 
     try:
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
@@ -161,7 +207,16 @@ def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None):
                         report((completed / total) * 100, "Cancelado por el usuario")
                     return
 
-                name, examples = future.result()
+                free = shutil.disk_usage(OUTPUT_DIR).free
+                if free < MIN_FREE_BYTES:
+                    for f in futures:
+                        f.cancel()
+                    raise RuntimeError(
+                        f"Se detiene: quedan {free / 1024 ** 3:.1f} GB libres "
+                        f"(mínimo {MIN_FREE_BYTES / 1024 ** 3:.0f} GB)."
+                    )
+
+                name, examples, skipped = future.result()
                 completed += 1
 
                 if examples is None:
@@ -170,6 +225,8 @@ def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None):
                     for example in examples:
                         writers[example["language"]].write(json.dumps(example, ensure_ascii=False) + "\n")
                     total_examples += len(examples)
+                    for key, value in skipped.items():
+                        skipped_totals[key] += value
 
                 if report:
                     report((completed / total) * 100, f"Procesado {name} ({completed}/{total})")
@@ -177,15 +234,20 @@ def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None):
         for w in writers.values():
             w.close()
 
-    msg = (f"Ejemplos generados: {total_examples} | Archivos omitidos (no son build válido): {skipped_files} | "
-           f"Procesos usados: {max_workers}")
+    msg = (f"Ejemplos: {total_examples} | Archivos omitidos (no son build válido): {skipped_files} | "
+           f"Objetos omitidos: {skipped_totals['propiedades_complejas']} por propiedades complejas, "
+           f"{skipped_totals['conexion_no_resuelta']} por conexión no resuelta | "
+           f"Procesos: {max_workers}")
     print(msg)
     if report:
         report(100, msg)
 
 
 def main():
-    run()
+    limit = None
+    if "--limit" in sys.argv:
+        limit = int(sys.argv[sys.argv.index("--limit") + 1])
+    run(limit=limit)
 
 
 if __name__ == "__main__":

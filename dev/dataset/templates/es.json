@@ -93,27 +93,12 @@
   },
 
   "connection_clauses": [
-    "conectado al {parent_type} anterior",
-    "conectada al {parent_type} anterior",
-    "pegado al {parent_type} anterior",
-    "unido al {parent_type} anterior",
-    "vinculado al {parent_type} anterior",
-    "conectado al {parent_type} del índice {index}",
-    "conectada al {parent_type} del índice {index}",
-    "pegado al {parent_type} del índice {index}",
-    "unido al {parent_type} del índice {index}",
-    "vinculado al {parent_type} del índice {index}",
-    "conectado con el {parent_type} del índice {index}",
-    "conectado al {parent_type} en el punto {point}",
-    "conectada al {parent_type} en el punto {point}",
-    "pegado al {parent_type} en el punto {point}",
-    "unido al {parent_type} en el punto {point}",
-    "vinculado al {parent_type} en el punto {point}",
-    "conectado a {parent_type} #{index}",
-    "conectada a {parent_type} #{index}",
-    "pegado a {parent_type} #{index}",
-    "unido a {parent_type} #{index}"
+    "conectado a {parent_type} #{index} en el punto {point}",
+    "pegado a {parent_type} #{index} en el punto {point}",
+    "unido al {parent_type} del índice {index}, punto {point}",
+    "vinculado al {parent_type} #{index} por el punto {point}"
   ],
+  "conjunction": " y ",
 
   "property_clauses": [
     "con {prop} en {value}",

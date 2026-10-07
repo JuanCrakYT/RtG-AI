@@ -9,8 +9,7 @@
     "drop",
     "insert",
     "set down",
-    "place down",
-    "put down"
+    "place down"
   ],
 
   "object_ref": [
@@ -79,23 +78,12 @@
   },
 
   "connection_clauses": [
-    "connected to the previous {parent_type}",
-    "attached to the previous {parent_type}",
-    "linked to the previous {parent_type}",
-    "joined to the previous {parent_type}",
-    "connected to the {parent_type} at index {index}",
-    "attached to the {parent_type} at index {index}",
-    "linked to the {parent_type} at index {index}",
-    "joined to the {parent_type} at index {index}",
-    "connected with the {parent_type} at index {index}",
-    "attached to the {parent_type} at point {point}",
-    "connected to the {parent_type} at point {point}",
-    "linked to the {parent_type} at point {point}",
-    "joined to the {parent_type} at point {point}",
-    "connected to {parent_type} #{index}",
-    "attached to {parent_type} #{index}",
-    "linked to {parent_type} #{index}"
+    "connected to {parent_type} #{index} at point {point}",
+    "attached to {parent_type} #{index} at point {point}",
+    "linked to the {parent_type} at index {index}, point {point}",
+    "joined to the {parent_type} #{index} through point {point}"
   ],
+  "conjunction": " and ",
 
   "property_clauses": [
     "with {prop} set to {value}",
