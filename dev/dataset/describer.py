@@ -8,27 +8,10 @@ conexiones, todas las propiedades). Si no, el modelo aprende a inventar.
 
 import random
 
-from dataset.rgb_colors import describe_rgb
-
-CANONICAL_COLORS = {
-    "red": (220, 30, 30), "orange": (230, 130, 30), "yellow": (230, 220, 40),
-    "green": (40, 180, 70), "cyan": (40, 190, 200), "blue": (40, 90, 220),
-    "purple": (140, 60, 190), "pink": (230, 100, 170), "brown": (120, 80, 50),
-    "white": (235, 235, 235), "gray": (130, 130, 130), "black": (25, 25, 25),
-}
+from dataset.colors.rgb_colors import nearest_color_key
 
 ORIENTATION_AXES = {"OrientationX": "X", "OrientationY": "Y", "OrientationZ": "Z"}
 SCALAR_TYPES = (bool, int, float, str)
-
-
-def closest_color_name(rgb):
-    r, g, b = rgb
-    return min(
-        CANONICAL_COLORS,
-        key=lambda n: (r - CANONICAL_COLORS[n][0]) ** 2
-                      + (g - CANONICAL_COLORS[n][1]) ** 2
-                      + (b - CANONICAL_COLORS[n][2]) ** 2,
-    )
 
 
 def normalize_properties(properties):
@@ -69,9 +52,12 @@ def describe_object(obj_type, properties, parents, templates, rng=random):
 
     rgb = properties.get("RGB")
     if rgb is not None:
-        name = rng.choice(templates["colors"].get(closest_color_name(rgb), [closest_color_name(rgb)]))
-        exact = f"{name} ({rgb[0]}, {rgb[1]}, {rgb[2]})"
-        slots["color"] = rng.choice(templates["color_clauses"]).format(color=exact)
+        color_key = nearest_color_key(rgb)
+        if color_key is not None:
+            color_options = templates["colors"].get(color_key, [color_key])
+            name = rng.choice(color_options)
+            exact = f"{name} ({rgb[0]}, {rgb[1]}, {rgb[2]})"
+            slots["color"] = rng.choice(templates["color_clauses"]).format(color=exact)
 
     if parents:
         clauses = [
