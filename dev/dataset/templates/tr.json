@@ -1,11 +1,81 @@
 {
-  "verbs": ["oluştur", "ekle", "üret", "yerleştir", "koy"],
-  "object_ref": ["bir {type} nesnesi", "bir {type} bloğu", "bir {type} parçası", "bir {type} öğesi", "{type}", "tek bir {type} nesnesi"],
-  "color_clauses": ["{color} renkte", "{color} renkli", "{color} renginde", "{color} renk tonunda"],
+  "verbs": [
+    "oluştur",
+    "ekle",
+    "üret",
+    "yerleştir",
+    "koy"
+  ],
+  "object_ref": [
+    "bir {type} nesnesi",
+    "bir {type} bloğu",
+    "bir {type} parçası",
+    "bir {type} öğesi",
+    "{type}",
+    "tek bir {type} nesnesi"
+  ],
+  "color_clauses": [
+    "{color} renkte",
+    "{color} renkli",
+    "{color} renginde",
+    "{color} renk tonunda"
+  ],
   "colors": {
-    "red": ["kırmızı"], "orange": ["turuncu"], "yellow": ["sarı"], "green": ["yeşil"],
-    "cyan": ["turkuaz", "açık mavi", "camgöbeği"], "blue": ["mavi"], "purple": ["mor", "eflatun"],
-    "pink": ["pembe"], "brown": ["kahverengi"], "white": ["beyaz"], "gray": ["gri"], "black": ["siyah", "kara"]
+    "red": [
+      "kırmızı"
+    ],
+    "orange": [
+      "turuncu"
+    ],
+    "yellow": [
+      "sarı"
+    ],
+    "green": [
+      "yeşil"
+    ],
+    "cyan": [
+      "turkuaz",
+      "açık mavi",
+      "camgöbeği"
+    ],
+    "blue": [
+      "mavi"
+    ],
+    "purple": [
+      "mor",
+      "eflatun"
+    ],
+    "pink": [
+      "pembe"
+    ],
+    "brown": [
+      "kahverengi"
+    ],
+    "white": [
+      "beyaz"
+    ],
+    "gray": [
+      "gri"
+    ],
+    "black": [
+      "siyah",
+      "kara"
+    ],
+    "dark_red": [
+      "koyu kırmızı"
+    ],
+    "dark_green": [
+      "koyu yeşil"
+    ],
+    "dark_blue": [
+      "koyu mavi"
+    ],
+    "gold": [
+      "altın"
+    ],
+    "silver": [
+      "gümüş"
+    ]
   },
   "connection_clauses": [
     "{parent_type} #{index} nesnesine nokta {point} üzerinden bağlı",
@@ -14,18 +84,69 @@
     "{parent_type} #{index} (nokta {point}) ile bağlı"
   ],
   "conjunction": ", ",
-  "property_clauses": ["{prop} değeri {value} olan", "{prop} ayarı {value} olan", "{prop} = {value} olan", "{prop}: {value} olan"],
+  "property_clauses": [
+    "{prop} değeri {value} olan",
+    "{prop} ayarı {value} olan",
+    "{prop} = {value} olan",
+    "{prop}: {value} olan"
+  ],
   "orientation_clauses": [
     "{axis} ekseninde {value}° yönlendirilmiş",
     "{axis} ekseninde {value}° döndürülmüş",
     "{axis} ekseni yönelimi {value}° olan",
     "{axis} ekseninde yönelimi {value}° olan"
   ],
-  "boolean_words": {"true": ["açık", "etkin", "aktif", "evet", "true"], "false": ["kapalı", "devre dışı", "pasif", "hayır", "false"]},
+  "boolean_words": {
+    "true": [
+      "açık",
+      "etkin",
+      "aktif",
+      "evet",
+      "true"
+    ],
+    "false": [
+      "kapalı",
+      "devre dışı",
+      "pasif",
+      "hayır",
+      "false"
+    ]
+  },
   "property_names": {
-    "Bullets": ["mermi sayısı", "cephane"], "Speed": ["hız"], "Rotation": ["dönüş"], "Volume": ["ses seviyesi"],
-    "Quantity": ["miktar"], "Text": ["metin"], "Length": ["uzunluk"], "Visible": ["görünürlük"],
-    "Activated": ["etkinleştirme durumu"], "Shooting": ["ateş etme"], "ItemTurn": ["öğe dönüşü"]
+    "Bullets": [
+      "mermi sayısı",
+      "cephane"
+    ],
+    "Speed": [
+      "hız"
+    ],
+    "Rotation": [
+      "dönüş"
+    ],
+    "Volume": [
+      "ses seviyesi"
+    ],
+    "Quantity": [
+      "miktar"
+    ],
+    "Text": [
+      "metin"
+    ],
+    "Length": [
+      "uzunluk"
+    ],
+    "Visible": [
+      "görünürlük"
+    ],
+    "Activated": [
+      "etkinleştirme durumu"
+    ],
+    "Shooting": [
+      "ateş etme"
+    ],
+    "ItemTurn": [
+      "öğe dönüşü"
+    ]
   },
   "sentence_patterns": [
     "{color} {connections} {props} {object} {verb}",
