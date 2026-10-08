@@ -264,8 +264,15 @@ def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None, limi
         items = counter.most_common(limit)
         return "\n".join("  {:<32} {:,}".format(key, value) for key, value in items) or "  (ninguno)"
 
-    generated_objects = total_examples // len(LANGUAGES) // VARIATIONS_PER_OBJECT
+    multiplier = len(LANGUAGES) * VARIATIONS_PER_OBJECT
+    generated_objects = total_examples // multiplier
     analyzed_objects = generated_objects + skipped_totals["propiedades_complejas"] + skipped_totals["conexion_no_resuelta"]
+    object_stats = Counter({key: value // multiplier for key, value in stats["objects"].items()})
+    property_stats = Counter({key: value // multiplier for key, value in stats["properties"].items()})
+    property_type_stats = Counter({key: value // multiplier for key, value in stats["property_types"].items()})
+    connection_stats = Counter({key: value // multiplier for key, value in stats["connections"].items()})
+    connection_total = stats["connection_total"] // multiplier
+    rgb_stats = Counter({key: value // multiplier for key, value in stats["colors"].items()})
     msg = "\n".join([
         "", "╔══════════════════════════════════════════════════════════════╗",
         "║                 RtG-AI DATASET REPORT                       ║",
@@ -284,17 +291,17 @@ def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None, limi
         "  Variaciones por objeto/idioma  {:,}".format(VARIATIONS_PER_OBJECT),
         "  Ejemplos totales               {:,}".format(total_examples),
         "", "  Ejemplos por idioma:", counter_text(stats["languages"]),
-        "", "[OBJECT TYPES]", counter_text(stats["objects"], 25),
+        "", "[OBJECT TYPES]", counter_text(object_stats, 25),
         "", "[PROPERTIES]",
-        "  Propiedades registradas        {:,}".format(sum(stats["properties"].values())),
-        counter_text(stats["properties"], 30),
-        "", "[PROPERTY TYPES]", counter_text(stats["property_types"]),
+        "  Propiedades registradas        {:,}".format(sum(property_stats.values())),
+        counter_text(property_stats, 30),
+        "", "[PROPERTY TYPES]", counter_text(property_type_stats),
         "", "[RGB]",
-        "  Valores RGB exactos             {:,}".format(sum(stats["colors"].values())),
-        counter_text(stats["colors"], 20),
+        "  Valores RGB exactos             {:,}".format(sum(rgb_stats.values())),
+        counter_text(rgb_stats, 20),
         "", "[CONNECTIONS]",
-        "  Conexiones totales              {:,}".format(stats["connection_total"]),
-        "  Distribución:", counter_text(stats["connections"]),
+        "  Conexiones totales              {:,}".format(connection_total),
+        "  Distribución:", counter_text(connection_stats),
         "", "[OUTPUT]",
         "  Archivos JSONL                  {:,}".format(len(output_files)),
         "  Tamaño total                    {:.2f} MB".format(total_bytes / 1024 / 1024),
