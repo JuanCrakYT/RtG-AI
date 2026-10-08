@@ -1,11 +1,78 @@
 {
-  "verbs": ["생성해 줘", "추가해 줘", "만들어 줘", "배치해 줘", "놓아 줘"],
-  "object_ref": ["{type} 블록을", "{type} 오브젝트를", "{type} 부품을", "{type} 파츠를", "{type} 조각을", "{type} 객체를"],
-  "color_clauses": ["{color} 색상의", "색상이 {color}인", "{color} 컬러의", "색상 값이 {color}인"],
+  "verbs": [
+    "생성해 줘",
+    "추가해 줘",
+    "만들어 줘",
+    "배치해 줘",
+    "놓아 줘"
+  ],
+  "object_ref": [
+    "{type} 블록을",
+    "{type} 오브젝트를",
+    "{type} 부품을",
+    "{type} 파츠를",
+    "{type} 조각을",
+    "{type} 객체를"
+  ],
+  "color_clauses": [
+    "{color} 색상의",
+    "색상이 {color}인",
+    "{color} 컬러의",
+    "색상 값이 {color}인"
+  ],
   "colors": {
-    "red": ["빨간색"], "orange": ["주황색"], "yellow": ["노란색"], "green": ["초록색"],
-    "cyan": ["청록색", "하늘색"], "blue": ["파란색"], "purple": ["보라색"],
-    "pink": ["분홍색"], "brown": ["갈색"], "white": ["흰색"], "gray": ["회색"], "black": ["검은색"]
+    "red": [
+      "빨간색"
+    ],
+    "orange": [
+      "주황색"
+    ],
+    "yellow": [
+      "노란색"
+    ],
+    "green": [
+      "초록색"
+    ],
+    "cyan": [
+      "청록색",
+      "하늘색"
+    ],
+    "blue": [
+      "파란색"
+    ],
+    "purple": [
+      "보라색"
+    ],
+    "pink": [
+      "분홍색"
+    ],
+    "brown": [
+      "갈색"
+    ],
+    "white": [
+      "흰색"
+    ],
+    "gray": [
+      "회색"
+    ],
+    "black": [
+      "검은색"
+    ],
+    "dark_red": [
+      "어두운 빨강"
+    ],
+    "dark_green": [
+      "어두운 초록"
+    ],
+    "dark_blue": [
+      "어두운 파랑"
+    ],
+    "gold": [
+      "금색"
+    ],
+    "silver": [
+      "은색"
+    ]
   },
   "connection_clauses": [
     "{parent_type} #{index}의 지점 {point}에 연결된",
@@ -14,18 +81,67 @@
     "{parent_type} #{index}의 지점 {point}에 결합된"
   ],
   "conjunction": ", ",
-  "property_clauses": ["{prop} 값이 {value}인", "{prop} 설정이 {value}인", "{prop}: {value}인", "{prop} 항목이 {value}인"],
+  "property_clauses": [
+    "{prop} 값이 {value}인",
+    "{prop} 설정이 {value}인",
+    "{prop}: {value}인",
+    "{prop} 항목이 {value}인"
+  ],
   "orientation_clauses": [
     "{axis}축 방향이 {value}°인",
     "{axis}축으로 {value}° 회전된",
     "{axis}축 회전값이 {value}°인",
     "{axis}축 기준 방향이 {value}°인"
   ],
-  "boolean_words": {"true": ["켜짐", "활성", "활성화", "true"], "false": ["꺼짐", "비활성", "비활성화", "false"]},
+  "boolean_words": {
+    "true": [
+      "켜짐",
+      "활성",
+      "활성화",
+      "true"
+    ],
+    "false": [
+      "꺼짐",
+      "비활성",
+      "비활성화",
+      "false"
+    ]
+  },
   "property_names": {
-    "Bullets": ["총알 수", "탄약"], "Speed": ["속도"], "Rotation": ["회전"], "Volume": ["볼륨"],
-    "Quantity": ["수량"], "Text": ["텍스트"], "Length": ["길이"], "Visible": ["표시 여부"],
-    "Activated": ["활성화 상태"], "Shooting": ["발사"], "ItemTurn": ["아이템 회전"]
+    "Bullets": [
+      "총알 수",
+      "탄약"
+    ],
+    "Speed": [
+      "속도"
+    ],
+    "Rotation": [
+      "회전"
+    ],
+    "Volume": [
+      "볼륨"
+    ],
+    "Quantity": [
+      "수량"
+    ],
+    "Text": [
+      "텍스트"
+    ],
+    "Length": [
+      "길이"
+    ],
+    "Visible": [
+      "표시 여부"
+    ],
+    "Activated": [
+      "활성화 상태"
+    ],
+    "Shooting": [
+      "발사"
+    ],
+    "ItemTurn": [
+      "아이템 회전"
+    ]
   },
   "sentence_patterns": [
     "{connections} {color} {props} {object} {verb}",
