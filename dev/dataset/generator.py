@@ -16,6 +16,8 @@ import random
 import shutil
 from pathlib import Path
 import os
+import time
+from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
@@ -125,7 +127,7 @@ def estimate_output_size(sample_size=5):
         if build is None:
             continue
         local_rng = random.Random(f"42:{path.name}")
-        examples, _skipped = generate_examples_for_build(build, path.name, templates, local_rng)
+        examples, _skipped, _stats = generate_examples_for_build(build, path.name, templates, local_rng)
         sample_examples += len(examples)
         sample_bytes += sum(len(json.dumps(e, ensure_ascii=False)) + 1 for e in examples)
 
