@@ -17,6 +17,7 @@ import shutil
 from pathlib import Path
 import os
 import time
+import sys
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -313,7 +314,11 @@ def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None, limi
         "Dataset generado correctamente.",
         "══════════════════════════════════════════════════════════════",
     ])
-    print(msg)
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        safe_msg = msg.encode(sys.stdout.encoding or "utf-8", errors="replace").decode(sys.stdout.encoding or "utf-8", errors="replace")
+        print(safe_msg)
     if report:
         report(100, msg)
 
