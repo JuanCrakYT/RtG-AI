@@ -8,6 +8,8 @@ conexiones, todas las propiedades). Si no, el modelo aprende a inventar.
 
 import random
 
+from dataset.rgb_colors import describe_rgb
+
 CANONICAL_COLORS = {
     "red": (220, 30, 30), "orange": (230, 130, 30), "yellow": (230, 220, 40),
     "green": (40, 180, 70), "cyan": (40, 190, 200), "blue": (40, 90, 220),
