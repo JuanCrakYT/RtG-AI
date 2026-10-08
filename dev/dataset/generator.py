@@ -189,7 +189,9 @@ def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None, limi
     total = len(json_files) or 1
 
     total_examples, skipped_files, completed = 0, 0, 0
+    started_at = time.perf_counter()
     skipped_totals = {"propiedades_complejas": 0, "conexion_no_resuelta": 0}
+    stats = {"objects": Counter(), "properties": Counter(), "property_types": Counter(), "colors": Counter(), "languages": Counter(), "connections": Counter(), "connection_total": 0}
 
     try:
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
@@ -227,6 +229,23 @@ def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None, limi
                     for example in examples:
                         writers[example["language"]].write(json.dumps(example, ensure_ascii=False) + "\n")
                     total_examples += len(examples)
+                    for example in examples:
+                        stats["languages"][example["language"]] += 1
+                        obj_type, connections, props = example["target"][0]
+                        stats["objects"][obj_type] += 1
+                        stats["connections"][len(connections)] += 1
+                        stats["connection_total"] += len(connections)
+                        for name, value in props.items():
+                            stats["properties"][name] += 1
+                            if isinstance(value, bool): kind = "Boolean"
+                            elif isinstance(value, int): kind = "Integer"
+                            elif isinstance(value, float): kind = "Number"
+                            elif isinstance(value, str): kind = "String"
+                            elif isinstance(value, list): kind = "Array"
+                            elif isinstance(value, dict): kind = "Object"
+                            else: kind = type(value).__name__
+                            stats["property_types"][kind] += 1
+                            if name == "RGB": stats["colors"][str(value)] += 1
                     for key, value in skipped.items():
                         skipped_totals[key] += value
 
@@ -236,10 +255,57 @@ def run(report=None, should_stop=None, ask=None, seed=42, max_workers=None, limi
         for w in writers.values():
             w.close()
 
-    msg = (f"Ejemplos: {total_examples} | Archivos omitidos (no son build válido): {skipped_files} | "
-           f"Objetos omitidos: {skipped_totals['propiedades_complejas']} por propiedades complejas, "
-           f"{skipped_totals['conexion_no_resuelta']} por conexión no resuelta | "
-           f"Procesos: {max_workers}")
+    elapsed = max(time.perf_counter() - started_at, 1e-9)
+    output_files = [OUTPUT_DIR / ("dataset_" + lang + suffix + ".jsonl") for lang in LANGUAGES if (OUTPUT_DIR / ("dataset_" + lang + suffix + ".jsonl")).exists()]
+    total_bytes = sum(path.stat().st_size for path in output_files)
+    examples_per_second = total_examples / elapsed
+
+    def counter_text(counter, limit=None):
+        items = counter.most_common(limit)
+        return "\n".join("  {:<32} {:,}".format(key, value) for key, value in items) or "  (ninguno)"
+
+    generated_objects = total_examples // len(LANGUAGES) // VARIATIONS_PER_OBJECT
+    analyzed_objects = generated_objects + skipped_totals["propiedades_complejas"] + skipped_totals["conexion_no_resuelta"]
+    msg = "\n".join([
+        "", "╔══════════════════════════════════════════════════════════════╗",
+        "║                 RtG-AI DATASET REPORT                       ║",
+        "╚══════════════════════════════════════════════════════════════╝",
+        "", "[INPUT]",
+        "  Builds encontrados              {:,}".format(len(all_files)),
+        "  Builds procesados               {:,}".format(len(json_files)),
+        "  Builds inválidos                {:,}".format(skipped_files),
+        "", "[OBJECTS]",
+        "  Objetos analizados              {:,}".format(analyzed_objects),
+        "  Objetos generados               {:,}".format(generated_objects),
+        "  Propiedades complejas           {:,}".format(skipped_totals["propiedades_complejas"]),
+        "  Conexiones no resueltas         {:,}".format(skipped_totals["conexion_no_resuelta"]),
+        "", "[EXAMPLES]",
+        "  Idiomas                         {:,}".format(len(LANGUAGES)),
+        "  Variaciones por objeto/idioma  {:,}".format(VARIATIONS_PER_OBJECT),
+        "  Ejemplos totales               {:,}".format(total_examples),
+        "", "  Ejemplos por idioma:", counter_text(stats["languages"]),
+        "", "[OBJECT TYPES]", counter_text(stats["objects"], 25),
+        "", "[PROPERTIES]",
+        "  Propiedades registradas        {:,}".format(sum(stats["properties"].values())),
+        counter_text(stats["properties"], 30),
+        "", "[PROPERTY TYPES]", counter_text(stats["property_types"]),
+        "", "[RGB]",
+        "  Valores RGB exactos             {:,}".format(sum(stats["colors"].values())),
+        counter_text(stats["colors"], 20),
+        "", "[CONNECTIONS]",
+        "  Conexiones totales              {:,}".format(stats["connection_total"]),
+        "  Distribución:", counter_text(stats["connections"]),
+        "", "[OUTPUT]",
+        "  Archivos JSONL                  {:,}".format(len(output_files)),
+        "  Tamaño total                    {:.2f} MB".format(total_bytes / 1024 / 1024),
+        "", "[PERFORMANCE]",
+        "  Procesos                        {:,}".format(max_workers),
+        "  Tiempo total                    {:.2f} s".format(elapsed),
+        "  Ejemplos/segundo                {:,.0f}".format(examples_per_second),
+        "", "══════════════════════════════════════════════════════════════",
+        "Dataset generado correctamente.",
+        "══════════════════════════════════════════════════════════════",
+    ])
     print(msg)
     if report:
         report(100, msg)
