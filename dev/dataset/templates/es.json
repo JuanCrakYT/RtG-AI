@@ -1,11 +1,85 @@
 {
-  "verbs": ["genera", "agrega", "crea", "pon", "coloca", "añade", "inserta"],
-  "object_ref": ["un {type}", "un objeto {type}", "un bloque {type}", "un elemento {type}", "{type}", "un solo {type}"],
-  "color_clauses": ["de color {color}", "pintado de {color}", "con color {color}", "con el color {color}", "usando el color {color}"],
+  "verbs": [
+    "genera",
+    "agrega",
+    "crea",
+    "pon",
+    "coloca",
+    "añade",
+    "inserta"
+  ],
+  "object_ref": [
+    "un {type}",
+    "un objeto {type}",
+    "un bloque {type}",
+    "un elemento {type}",
+    "{type}",
+    "un solo {type}"
+  ],
+  "color_clauses": [
+    "de color {color}",
+    "pintado de {color}",
+    "con color {color}",
+    "con el color {color}",
+    "usando el color {color}"
+  ],
   "colors": {
-    "red": ["rojo"], "orange": ["naranja"], "yellow": ["amarillo"], "green": ["verde"],
-    "cyan": ["cian", "celeste", "turquesa"], "blue": ["azul"], "purple": ["morado", "violeta"],
-    "pink": ["rosa", "rosado"], "brown": ["café", "marrón"], "white": ["blanco"], "gray": ["gris"], "black": ["negro"]
+    "red": [
+      "rojo"
+    ],
+    "orange": [
+      "naranja"
+    ],
+    "yellow": [
+      "amarillo"
+    ],
+    "green": [
+      "verde"
+    ],
+    "cyan": [
+      "cian",
+      "celeste",
+      "turquesa"
+    ],
+    "blue": [
+      "azul"
+    ],
+    "purple": [
+      "morado",
+      "violeta"
+    ],
+    "pink": [
+      "rosa",
+      "rosado"
+    ],
+    "brown": [
+      "café",
+      "marrón"
+    ],
+    "white": [
+      "blanco"
+    ],
+    "gray": [
+      "gris"
+    ],
+    "black": [
+      "negro"
+    ],
+    "dark_red": [
+      "rojo oscuro"
+    ],
+    "dark_green": [
+      "verde oscuro"
+    ],
+    "dark_blue": [
+      "azul oscuro"
+    ],
+    "gold": [
+      "dorado"
+    ],
+    "silver": [
+      "plata"
+    ]
   },
   "connection_clauses": [
     "conectado a {parent_type} #{index} en el punto {point}",
@@ -14,7 +88,12 @@
     "vinculado a {parent_type} del índice {index} en el punto {point}"
   ],
   "conjunction": " y ",
-  "property_clauses": ["con {prop} en {value}", "con {prop} igual a {value}", "donde {prop} es {value}", "con {prop}: {value}"],
+  "property_clauses": [
+    "con {prop} en {value}",
+    "con {prop} igual a {value}",
+    "donde {prop} es {value}",
+    "con {prop}: {value}"
+  ],
   "orientation_clauses": [
     "orientado a {value}° en el eje {axis}",
     "rotado {value} grados en el eje {axis}",
@@ -23,13 +102,58 @@
     "con orientación {axis} igual a {value}"
   ],
   "boolean_words": {
-    "true": ["activado", "encendido", "habilitado", "sí", "verdadero"],
-    "false": ["desactivado", "apagado", "deshabilitado", "no", "falso"]
+    "true": [
+      "activado",
+      "encendido",
+      "habilitado",
+      "sí",
+      "verdadero"
+    ],
+    "false": [
+      "desactivado",
+      "apagado",
+      "deshabilitado",
+      "no",
+      "falso"
+    ]
   },
   "property_names": {
-    "Bullets": ["munición", "número de balas", "cantidad de balas"], "Speed": ["velocidad"], "Rotation": ["rotación"],
-    "Volume": ["volumen"], "Quantity": ["cantidad"], "Text": ["texto"], "Length": ["longitud", "largo"],
-    "Visible": ["visibilidad"], "Activated": ["estado de activación"], "Shooting": ["disparo"], "ItemTurn": ["giro del objeto"]
+    "Bullets": [
+      "munición",
+      "número de balas",
+      "cantidad de balas"
+    ],
+    "Speed": [
+      "velocidad"
+    ],
+    "Rotation": [
+      "rotación"
+    ],
+    "Volume": [
+      "volumen"
+    ],
+    "Quantity": [
+      "cantidad"
+    ],
+    "Text": [
+      "texto"
+    ],
+    "Length": [
+      "longitud",
+      "largo"
+    ],
+    "Visible": [
+      "visibilidad"
+    ],
+    "Activated": [
+      "estado de activación"
+    ],
+    "Shooting": [
+      "disparo"
+    ],
+    "ItemTurn": [
+      "giro del objeto"
+    ]
   },
   "sentence_patterns": [
     "{verb} {object} {color} {connections} {props}",
