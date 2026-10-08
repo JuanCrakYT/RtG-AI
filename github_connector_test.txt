@@ -1,2 +1,0 @@
-GitHub connector test — created on 2026-10-07.
-If you can read this, the connector can create files in RtG-AI.
