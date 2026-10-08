@@ -1,11 +1,81 @@
 {
-  "verbs": ["Erstelle", "Generiere", "Platziere", "Erzeuge", "Baue", "Setze"],
-  "object_ref": ["einen {type}-Block", "ein {type}-Objekt", "ein {type}-Element", "ein {type}-Teil", "{type}", "einen {type}-Baustein"],
-  "color_clauses": ["in {color}", "in der Farbe {color}", "mit der Farbe {color}", "in {color} gefärbt"],
+  "verbs": [
+    "Erstelle",
+    "Generiere",
+    "Platziere",
+    "Erzeuge",
+    "Baue",
+    "Setze"
+  ],
+  "object_ref": [
+    "einen {type}-Block",
+    "ein {type}-Objekt",
+    "ein {type}-Element",
+    "ein {type}-Teil",
+    "{type}",
+    "einen {type}-Baustein"
+  ],
+  "color_clauses": [
+    "in {color}",
+    "in der Farbe {color}",
+    "mit der Farbe {color}",
+    "in {color} gefärbt"
+  ],
   "colors": {
-    "red": ["Rot"], "orange": ["Orange"], "yellow": ["Gelb"], "green": ["Grün"],
-    "cyan": ["Cyan", "Hellblau", "Türkis"], "blue": ["Blau"], "purple": ["Lila", "Violett"],
-    "pink": ["Rosa"], "brown": ["Braun"], "white": ["Weiß"], "gray": ["Grau"], "black": ["Schwarz"]
+    "red": [
+      "Rot"
+    ],
+    "orange": [
+      "Orange"
+    ],
+    "yellow": [
+      "Gelb"
+    ],
+    "green": [
+      "Grün"
+    ],
+    "cyan": [
+      "Cyan",
+      "Hellblau",
+      "Türkis"
+    ],
+    "blue": [
+      "Blau"
+    ],
+    "purple": [
+      "Lila",
+      "Violett"
+    ],
+    "pink": [
+      "Rosa"
+    ],
+    "brown": [
+      "Braun"
+    ],
+    "white": [
+      "Weiß"
+    ],
+    "gray": [
+      "Grau"
+    ],
+    "black": [
+      "Schwarz"
+    ],
+    "dark_red": [
+      "Dunkelrot"
+    ],
+    "dark_green": [
+      "Dunkelgrün"
+    ],
+    "dark_blue": [
+      "Dunkelblau"
+    ],
+    "gold": [
+      "Gold"
+    ],
+    "silver": [
+      "Silber"
+    ]
   },
   "connection_clauses": [
     "verbunden mit {parent_type} #{index} an Punkt {point}",
@@ -14,7 +84,13 @@
     "verknüpft mit {parent_type} bei Index {index}, Punkt {point}"
   ],
   "conjunction": " und ",
-  "property_clauses": ["mit {prop} {value}", "mit {prop} auf {value}", "mit {prop} gleich {value}", "wobei {prop} {value} ist", "mit {prop}: {value}"],
+  "property_clauses": [
+    "mit {prop} {value}",
+    "mit {prop} auf {value}",
+    "mit {prop} gleich {value}",
+    "wobei {prop} {value} ist",
+    "mit {prop}: {value}"
+  ],
   "orientation_clauses": [
     "ausgerichtet auf {value}° auf der {axis}-Achse",
     "um {value}° um die {axis}-Achse gedreht",
@@ -22,13 +98,59 @@
     "mit {axis}-Rotation von {value}°"
   ],
   "boolean_words": {
-    "true": ["an", "aktiviert", "eingeschaltet", "aktiv", "wahr"],
-    "false": ["aus", "deaktiviert", "ausgeschaltet", "inaktiv", "falsch"]
+    "true": [
+      "an",
+      "aktiviert",
+      "eingeschaltet",
+      "aktiv",
+      "wahr"
+    ],
+    "false": [
+      "aus",
+      "deaktiviert",
+      "ausgeschaltet",
+      "inaktiv",
+      "falsch"
+    ]
   },
   "property_names": {
-    "Bullets": ["Munition", "Kugelanzahl", "Anzahl der Kugeln"], "Speed": ["Geschwindigkeit"], "Rotation": ["Rotation", "Drehung"],
-    "Volume": ["Lautstärke"], "Quantity": ["Menge", "Anzahl"], "Text": ["Text"], "Length": ["Länge"],
-    "Visible": ["Sichtbarkeit"], "Activated": ["Aktivierungsstatus"], "Shooting": ["Schießen"], "ItemTurn": ["Objektdrehung"]
+    "Bullets": [
+      "Munition",
+      "Kugelanzahl",
+      "Anzahl der Kugeln"
+    ],
+    "Speed": [
+      "Geschwindigkeit"
+    ],
+    "Rotation": [
+      "Rotation",
+      "Drehung"
+    ],
+    "Volume": [
+      "Lautstärke"
+    ],
+    "Quantity": [
+      "Menge",
+      "Anzahl"
+    ],
+    "Text": [
+      "Text"
+    ],
+    "Length": [
+      "Länge"
+    ],
+    "Visible": [
+      "Sichtbarkeit"
+    ],
+    "Activated": [
+      "Aktivierungsstatus"
+    ],
+    "Shooting": [
+      "Schießen"
+    ],
+    "ItemTurn": [
+      "Objektdrehung"
+    ]
   },
   "sentence_patterns": [
     "{verb} {object} {color} {connections} {props}",
