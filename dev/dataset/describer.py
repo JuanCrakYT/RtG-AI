@@ -8,6 +8,8 @@ conexiones, todas las propiedades). Si no, el modelo aprende a inventar.
 
 import random
 
+from dataset.rgb_colors import describe_rgb
+
 CANONICAL_COLORS = {
     "red": (220, 30, 30), "orange": (230, 130, 30), "yellow": (230, 220, 40),
     "green": (40, 180, 70), "cyan": (40, 190, 200), "blue": (40, 90, 220),
@@ -68,6 +70,9 @@ def describe_object(obj_type, properties, parents, templates, rng=random):
     rgb = properties.get("RGB")
     if rgb is not None:
         name = rng.choice(templates["colors"].get(closest_color_name(rgb), [closest_color_name(rgb)]))
+        approximate = describe_rgb(rgb, "es")
+        if approximate:
+            name = rng.choice([name, approximate.split("(", 1)[-1].rstrip(")")])
         exact = f"{name} ({rgb[0]}, {rgb[1]}, {rgb[2]})"
         slots["color"] = rng.choice(templates["color_clauses"]).format(color=exact)
 
