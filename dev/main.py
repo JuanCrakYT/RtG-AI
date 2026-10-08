@@ -110,6 +110,8 @@ def main():
             )
             if ev.status == StageStatus.FAILED and ev.error:
                 print(f"[{ev.stage_name}] ERROR:\n{ev.error}")
+            elif ev.message and ev.stage_name == "dataset_generator" and ev.percent >= 100:
+                print(ev.message)
 
         pending.extend(orchestrator.poll_messages())
 
