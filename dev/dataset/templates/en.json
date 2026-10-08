@@ -1,11 +1,86 @@
 {
-  "verbs": ["add", "create", "generate", "place", "spawn", "put", "insert", "set down"],
-  "object_ref": ["a {type}", "a {type} piece", "a {type} object", "a {type} block", "{type}", "one {type}"],
-  "color_clauses": ["colored {color}", "in {color}", "painted {color}", "with the color {color}", "using the color {color}"],
+  "verbs": [
+    "add",
+    "create",
+    "generate",
+    "place",
+    "spawn",
+    "put",
+    "insert",
+    "set down"
+  ],
+  "object_ref": [
+    "a {type}",
+    "a {type} piece",
+    "a {type} object",
+    "a {type} block",
+    "{type}",
+    "one {type}"
+  ],
+  "color_clauses": [
+    "colored {color}",
+    "in {color}",
+    "painted {color}",
+    "with the color {color}",
+    "using the color {color}"
+  ],
   "colors": {
-    "red": ["red"], "orange": ["orange"], "yellow": ["yellow"], "green": ["green"],
-    "cyan": ["cyan", "light blue", "turquoise"], "blue": ["blue"], "purple": ["purple", "violet"],
-    "pink": ["pink", "rose"], "brown": ["brown"], "white": ["white"], "gray": ["gray", "grey"], "black": ["black"]
+    "red": [
+      "red"
+    ],
+    "orange": [
+      "orange"
+    ],
+    "yellow": [
+      "yellow"
+    ],
+    "green": [
+      "green"
+    ],
+    "cyan": [
+      "cyan",
+      "light blue",
+      "turquoise"
+    ],
+    "blue": [
+      "blue"
+    ],
+    "purple": [
+      "purple",
+      "violet"
+    ],
+    "pink": [
+      "pink",
+      "rose"
+    ],
+    "brown": [
+      "brown"
+    ],
+    "white": [
+      "white"
+    ],
+    "gray": [
+      "gray",
+      "grey"
+    ],
+    "black": [
+      "black"
+    ],
+    "dark_red": [
+      "dark red"
+    ],
+    "dark_green": [
+      "dark green"
+    ],
+    "dark_blue": [
+      "dark blue"
+    ],
+    "gold": [
+      "gold"
+    ],
+    "silver": [
+      "silver"
+    ]
   },
   "connection_clauses": [
     "connected to {parent_type} #{index} at point {point}",
@@ -14,7 +89,13 @@
     "joined to {parent_type} #{index} through point {point}"
   ],
   "conjunction": " and ",
-  "property_clauses": ["with {prop} set to {value}", "with {prop} {value}", "with {prop} equal to {value}", "where {prop} is {value}", "with {prop} configured as {value}"],
+  "property_clauses": [
+    "with {prop} set to {value}",
+    "with {prop} {value}",
+    "with {prop} equal to {value}",
+    "where {prop} is {value}",
+    "with {prop} configured as {value}"
+  ],
   "orientation_clauses": [
     "oriented at {value} degrees on the {axis} axis",
     "with an orientation of {value} degrees on the {axis} axis",
@@ -22,11 +103,58 @@
     "with {axis} orientation set to {value}",
     "with the {axis} rotation set to {value}"
   ],
-  "boolean_words": {"true": ["on", "enabled", "active", "true"], "false": ["off", "disabled", "inactive", "false"]},
+  "boolean_words": {
+    "true": [
+      "on",
+      "enabled",
+      "active",
+      "true"
+    ],
+    "false": [
+      "off",
+      "disabled",
+      "inactive",
+      "false"
+    ]
+  },
   "property_names": {
-    "Bullets": ["bullets", "rounds", "ammo"], "Speed": ["speed"], "Rotation": ["rotation"], "Volume": ["volume"],
-    "Quantity": ["quantity", "amount"], "Text": ["text"], "Length": ["length"], "Visible": ["visible", "visibility"],
-    "Activated": ["activated"], "Shooting": ["shooting"], "ItemTurn": ["item turn"]
+    "Bullets": [
+      "bullets",
+      "rounds",
+      "ammo"
+    ],
+    "Speed": [
+      "speed"
+    ],
+    "Rotation": [
+      "rotation"
+    ],
+    "Volume": [
+      "volume"
+    ],
+    "Quantity": [
+      "quantity",
+      "amount"
+    ],
+    "Text": [
+      "text"
+    ],
+    "Length": [
+      "length"
+    ],
+    "Visible": [
+      "visible",
+      "visibility"
+    ],
+    "Activated": [
+      "activated"
+    ],
+    "Shooting": [
+      "shooting"
+    ],
+    "ItemTurn": [
+      "item turn"
+    ]
   },
   "sentence_patterns": [
     "{verb} {object} {color} {connections} {props}",
