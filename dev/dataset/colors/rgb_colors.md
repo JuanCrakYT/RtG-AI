@@ -26,4 +26,3 @@ The dataset must always preserve the exact RGB value in the generated RtG target
 |  [255,215,0]  | Dorado                  | Gold       | Dourado         | Gold       | Or          | Oro         | Золотой            | 金色      | 金色     | 금색        | Altın        | Złoty           |
 | [192,192,192] | Plata                   | Silver     | Prata           | Silber     | Argent      | Argento     | Серебряный         | 银色      | 銀色     | 은색        | Gümüş        | Srebrny         |
 
-|   [120,80,50]  | Café / Marrón             | Brown      | Marrom          | Braun      | Marron      | Marrone     | Коричневый         | 棕色      | 茶色     | 갈색        | Kahverengi   | Brązowy         |
